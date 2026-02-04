@@ -7,5 +7,6 @@ namespace RickYMorty.model
         public required string Status { get; set; }
         public required string Species { get; set; }
         public required string Gender { get; set; }
+        public required int OwnedByUserId { get; set; }
     }
 }

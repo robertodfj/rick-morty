@@ -9,5 +9,6 @@ namespace RickYMorty.model
         public required string[] Characters { get; set; }
         public required string Url { get; set; }
         public required string Created { get; set; }
+        public required int OwnedByUserId { get; set; }
     }
 }
