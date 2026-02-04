@@ -1,0 +1,4 @@
+namespace RickYMorty.model
+{
+    
+}
