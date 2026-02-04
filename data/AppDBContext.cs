@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using RickYMorty.model;
 
 namespace RickYMorty.data
 {
@@ -7,7 +8,7 @@ namespace RickYMorty.data
         public AppDBContext(DbContextOptions<AppDBContext> options) : base(options)
         {
         }
-        
+
         public DbSet<Character> Characters { get; set; }
         public DbSet<Episode> Episodes { get; set; }
         public DbSet<User> Users { get; set; }
