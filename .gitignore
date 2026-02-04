@@ -1,0 +1,14 @@
+[Bb]in/
+[Oo]bj/
+
+bin/
+obj/
+publish/
+
+# SQLite
+*.db
+*.db-shm
+*.db-wal
+
+# Configuración local
+appsettings.Development.json

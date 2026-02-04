@@ -1,0 +1,6 @@
+@RickYMorty_HostAddress = http://localhost:5235
+
+GET {{RickYMorty_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
