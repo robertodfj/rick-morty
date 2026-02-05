@@ -39,3 +39,21 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
+
+// Crear los DTO restantes
+
+// Crear el mini juego de captura y tradeo con service
+// https://rickandmortyapi.com/api/episode/51
+
+// Crear un manejo de errores personalizado para la API, con un middleware
+
+// Crear el token y uso de jwt para autenticación y autorización
+// Crear los controladores para los personajes y episodios, con sus respectivos servicios
+
+// Crear el program cs
+
+// Probar con postman
+
+// Subir a vercel
+
+// Crear el bot de telegram desde el que poder jugar
