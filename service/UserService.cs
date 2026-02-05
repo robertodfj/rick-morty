@@ -19,7 +19,7 @@ namespace RickYMorty.service
             // Buscar al usuario por username
             var user = await GetUserByUsername(username);
             // Obtener los personajes del usuario
-            var characters = await _context.Characters.Where(c => c.UserId == user.Id).ToListAsync();
+            var characters = await _context.Characters.Where(c => c.OwnedByUserId == user.Id).ToListAsync();
 
             // Mapear a DTO
             var response = characters.Select(c => new CharacterResponse
@@ -28,18 +28,18 @@ namespace RickYMorty.service
                 Name = c.Name,
                 Status = c.Status,
                 Species = c.Species,
-                Type = c.Type
+                Gender = c.Gender
             }).ToList();
 
             return response;
         }
 
-        public async Task<List<CharacterResponse>> GetUserEpisodes(string username)
+        public async Task<List<EpisodeResponse>> GetUserEpisodes(string username)
         {
             // Buscar al usuario por username
             var user = await GetUserByUsername(username);
             // Obtener los personajes del usuario
-            var episodes = await _context.Episodes.Where(e => e.UserId == user.Id).ToListAsync();
+            var episodes = await _context.Episodes.Where(e => e.OwnedByUserId == user.Id).ToListAsync();
 
             // Mapear a DTO
             var response = episodes.Select(e => new EpisodeResponse
@@ -47,7 +47,7 @@ namespace RickYMorty.service
                 Id = e.Id,
                 Name = e.Name,
                 AirDate = e.AirDate,
-                Episode = e.Episode,
+                Episode = e.EpisodeCode,
                 Url = e.Url,
                 Created = e.Created
             }).ToList();
