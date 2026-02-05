@@ -48,6 +48,7 @@ namespace RickYMorty.service
                 Name = e.Name,
                 AirDate = e.AirDate,
                 Episode = e.EpisodeCode,
+                Characters = e.Characters,
                 Url = e.Url,
                 Created = e.Created
             }).ToList();
