@@ -18,9 +18,6 @@ namespace RickYMorty.dto
         [StringLength(50)]
         public string Species { get; set; } = null!;
 
-        [StringLength(100)]
-        public string? Type { get; set; }
-
         [Required]
         [StringLength(50)]
         public string Gender { get; set; } = null!;

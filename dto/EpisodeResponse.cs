@@ -17,6 +17,9 @@ namespace RickYMorty.dto
         [Required]
         [StringLength(50)]
         public string Episode { get; set; } = null!;
+
+        [Required]
+        public required string[] Characters { get; set; }
         
         [StringLength(100)]
         public string? Url { get; set; }
