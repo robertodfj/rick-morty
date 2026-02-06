@@ -41,7 +41,11 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 }
 
 
-// Crear el mini juego de captura y tradeo con service
+// Añadir un limite para trabajar (cada 30min añadir un date time en user model y comprobar en el service si ha pasado el tiempo para poder trabajar de nuevo, y añadir un contador de veces que se ha trabajado para aumentar la probabilidad de captura)
+// Añadir un bool de si el character/episode esta en venta o no, y un precio, para poder comprar y vender entre usuarios
+// Añadir un service para mostrar los que estan en venta
+// Añadir el service para comprar y vender con validaciones de dinero usr etc, añadir instantaneamente el dinero al que quiere poner el personaje(como el fantasy) nada mas comprarlo
+// Añadir probabilidad de caza pequeña para el principio no valgan dinero y haya que trabajar para comprar a otros usuarios, (Se puede añadir level y cuanto mas veces trabajes y captures mas facil sea capturar)
 // https://rickandmortyapi.com/api/episode/51
 
 // Crear un manejo de errores personalizado para la API, con un middleware
