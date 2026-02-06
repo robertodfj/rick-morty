@@ -41,9 +41,6 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 }
 
 
-// Añadir un bool de si el character/episode esta en venta o no, y un precio, para poder comprar y vender entre usuarios
-// Añadir un service para mostrar los que estan en venta
-// Añadir el service para comprar y vender con validaciones de dinero usr etc, añadir instantaneamente el dinero al que quiere poner el personaje(como el fantasy) nada mas comprarlo
 // Añadir probabilidad de caza pequeña para el principio no valgan dinero y haya que trabajar para comprar a otros usuarios, (Se puede añadir level y cuanto mas veces trabajes y captures mas facil sea capturar)
 // https://rickandmortyapi.com/api/episode/51
 
