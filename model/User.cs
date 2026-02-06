@@ -8,5 +8,7 @@ namespace RickYMorty.model
         public required string Email { get; set; }
         public required string Role { get; set; }
         public double Money { get; set; } = 500;
+        public DateTime? LastWorked { get; set; }
+        public int? TimesWorked { get; set; }
     }
 }
