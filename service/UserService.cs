@@ -59,9 +59,18 @@ namespace RickYMorty.service
         public async Task<string> Working(int id)
         {
             var user = await GetUserByID(id);
+            if (user.LastWorked.HasValue)
+            {
+               var timeSinceLastWork = DateTime.Now - user.LastWorked.Value;
+                if (timeSinceLastWork.TotalMinutes < 15)
+                {
+                    var minutesLeft = 15 - (int)timeSinceLastWork.TotalMinutes;
+                    throw new Exception($"You have already worked recently. Please wait {minutesLeft} more minutes before working again.");
+                }
+            }
+            user.LastWorked = DateTime.Now;
             user.Money += 100;
             await _context.SaveChangesAsync();
-            
             return $"User {user.Username} has worked and earned 100 money. Total money: {user.Money}";
         }
 
