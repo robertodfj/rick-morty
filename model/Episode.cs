@@ -10,5 +10,7 @@ namespace RickYMorty.model
         public required string Url { get; set; }
         public required string Created { get; set; }
         public required int OwnedByUserId { get; set; }
+        public bool ForSale { get; set; } = false;
+        public double Price { get; set; } = 0;
     }
 }

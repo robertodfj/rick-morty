@@ -8,5 +8,7 @@ namespace RickYMorty.model
         public required string Species { get; set; }
         public required string Gender { get; set; }
         public required int OwnedByUserId { get; set; }
+        public bool ForSale { get; set; } = false;
+        public double Price { get; set; } = 0;
     }
 }
