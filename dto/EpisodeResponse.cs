@@ -26,5 +26,9 @@ namespace RickYMorty.dto
         
         [StringLength(100)]
         public string? Created { get; set; }
+
+        public bool ForSale { get; set; }
+        
+        public double Price { get; set; }
     }
 }

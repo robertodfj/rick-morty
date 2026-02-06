@@ -21,5 +21,9 @@ namespace RickYMorty.dto
         [Required]
         [StringLength(50)]
         public string Gender { get; set; } = null!;
+
+        public bool ForSale { get; set; }
+        
+        public double Price { get; set; }
     }
 }
