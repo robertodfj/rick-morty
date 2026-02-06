@@ -14,36 +14,34 @@ namespace RickYMorty.service
         }
 
         // Ver tienda de characters y episodes
-        public async Task<List<CharacterResponse>> GetCharactersForSale()
+        public async Task<List<TradeResponse>> GetCharactersForSale()
         {
             var charactersForSale = await _context.Characters.Where(c => c.ForSale).ToListAsync();
             var episodesForSale = await _context.Episodes.Where(e => e.ForSale).ToListAsync();
 
-            var response = charactersForSale.Select(c => new CharacterResponse
+            var items = charactersForSale.Select(c => new TradeResponse
             {
                 Id = c.Id,
                 Name = c.Name,
-                Status = c.Status,
-                Species = c.Species,
-                Gender = c.Gender,
+                Type = "Character",
+                Price = c.Price,
                 ForSale = c.ForSale,
-                Price = c.Price
-            }).ToList();
+                ExtraInfo = c.Status // o Species, o cualquier info que quieras
+            }).ToList<TradeResponse>();
 
-            var response2 = episodesForSale.Select(e => new EpisodeResponse
+            items.AddRange(episodesForSale.Select(e => new TradeResponse
             {
                 Id = e.Id,
                 Name = e.Name,
-                AirDate = e.AirDate,
-                Episode = e.EpisodeCode,
-                Characters = e.Characters,
-                Url = e.Url,
-                Created = e.Created,
+                Type = "Episode",
+                Price = e.Price,
                 ForSale = e.ForSale,
-                Price = e.Price
-            }).ToList();
+                Url = e.Url,
+                Characters = e.Characters,
+                ExtraInfo = e.EpisodeCode
+            }));
 
-            return response.Concat(response2).ToList();
+            return items;
         }
 
         // Poner a la venta un personaje o episodio 
@@ -103,7 +101,8 @@ namespace RickYMorty.service
             {
                 throw new Exception("Buyer not found.");
             }
-            if (character == null){
+            if (character == null)
+            {
                 throw new Exception("Character not found or not for sale.");
             }
             if (user.Money < character.Price)
@@ -139,7 +138,8 @@ namespace RickYMorty.service
             {
                 throw new Exception("Buyer not found.");
             }
-            if (episode == null){
+            if (episode == null)
+            {
                 throw new Exception("Episode not found or not for sale.");
             }
             if (user.Money < episode.Price)
