@@ -40,7 +40,7 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
 
-
+// Añadir transaction en el trade service para que si algo falla en el proceso de compra o venta, se pueda hacer un rollback y no se quede el sistema en un estado inconsistente
 // Crear un manejo de errores personalizado para la API, con un middleware
 
 // Crear el token y uso de jwt para autenticación y autorización
