@@ -1,3 +1,5 @@
+using RickYMorty.middleware;
+
 namespace RickYMorty.middlware
 {
     public class ExceptionMiddleware

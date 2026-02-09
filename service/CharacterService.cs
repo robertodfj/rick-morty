@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using RickYMorty.data;
 using RickYMorty.dto;
+using RickYMorty.middleware;
 
 namespace RickYMorty.service
 {
@@ -21,25 +22,25 @@ namespace RickYMorty.service
             var existing = await _context.Characters.FirstOrDefaultAsync(c => c.Id == getCharacterDTO.Id);
             if (user == null)
             {
-                throw new Exception("User not found");
+                throw new NotFoundException("User not found");
             }
             if (getCharacterDTO.Id <= 0)
             {
-                throw new Exception("Invalid character ID");
+                throw new BadRequestException("Invalid character ID");
             }
             if (existing != null)
             {
-                throw new Exception($"Character already owned by user {existing.OwnedByUserId}");
+                throw new ConflictException($"Character already owned by user {existing.OwnedByUserId}");
             }
             if (!CaptureSuccess(user.TimesWorked ?? 0))
             {
-                throw new Exception("Capture failed. Keep working to increase your chances!");
+                throw new ConflictException("Capture failed. Keep working to increase your chances!");
             }
 
             var response = await _httpClient.GetFromJsonAsync<CharacterResponse>($"https://rickandmortyapi.com/api/character/{getCharacterDTO.Id}");
             if (response == null)
             {
-                throw new Exception("Character not found");
+                throw new NotFoundException("Character not found");
             }
 
             var character = new model.Character

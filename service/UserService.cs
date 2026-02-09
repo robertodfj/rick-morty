@@ -2,6 +2,7 @@ using RickYMorty.data;
 using RickYMorty.dto;
 using RickYMorty.model;
 using Microsoft.EntityFrameworkCore;
+using RickYMorty.middleware;
 
 namespace RickYMorty.service
 {
@@ -65,7 +66,7 @@ namespace RickYMorty.service
                 if (timeSinceLastWork.TotalMinutes < 15)
                 {
                     var minutesLeft = 15 - (int)timeSinceLastWork.TotalMinutes;
-                    throw new Exception($"You have already worked recently. Please wait {minutesLeft} more minutes before working again.");
+                    throw new ConflictException($"You have already worked recently. Please wait {minutesLeft} more minutes before working again.");
                 }
             }
             user.LastWorked = DateTime.Now;
@@ -79,7 +80,7 @@ namespace RickYMorty.service
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
             if (user == null)
             {
-                throw new Exception("User not found");
+                throw new NotFoundException("User not found");
             }
             return user;
         }
@@ -89,7 +90,7 @@ namespace RickYMorty.service
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
             if (user == null)
             {
-                throw new Exception("User not found");
+                throw new NotFoundException("User not found");
             }
             return user;
         }

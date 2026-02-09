@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using RickYMorty.data;
 using RickYMorty.dto;
+using RickYMorty.middleware;
 using RickYMorty.model;
 
 namespace RickYMorty.service
@@ -22,25 +23,25 @@ namespace RickYMorty.service
             var existing = await _context.Episodes.FirstOrDefaultAsync(e => e.Id == getEpisode.Id);
             if (user == null)
             {
-                throw new Exception("User not found");
+                throw new NotFoundException("User not found");
             }
             if (getEpisode.Id <= 0)
             {
-                throw new Exception("Invalid episode ID");
+                throw new BadRequestException("Invalid episode ID");
             }
             if (existing != null)
             {
-                throw new Exception($"Episode already owned by user {existing.OwnedByUserId}");
+                throw new ConflictException($"Episode already owned by user {existing.OwnedByUserId}");
             }
             if (!CaptureSuccess(user.TimesWorked ?? 0))
             {
-                throw new Exception("Capture failed. Keep working to increase your chances!");
+                throw new ConflictException("Capture failed. Keep working to increase your chances!");
             }
 
             var response = await _httpClient.GetFromJsonAsync<EpisodeResponse>($"https://rickandmortyapi.com/api/episode/{getEpisode.Id}");
             if (response == null)
             {
-                throw new Exception("Episode not found");
+                throw new NotFoundException("Episode not found");
             }
 
             var episode = new Episode

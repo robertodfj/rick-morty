@@ -1,5 +1,6 @@
 using RickYMorty.data;
 using RickYMorty.dto.auth;
+using RickYMorty.middleware;
 using RickYMorty.model;
 
 namespace RickYMorty.service.auth
@@ -50,7 +51,7 @@ namespace RickYMorty.service.auth
             var user = _context.Users.FirstOrDefault(u => u.Username == loginDTO.Username);
             if (user == null || !BCrypt.Net.BCrypt.Verify(loginDTO.Password, user.Password))
             {
-                
+                throw new BadRequestException("Invalid username or password");
             }
         
             return "Crear el token aqui"; 
@@ -60,15 +61,15 @@ namespace RickYMorty.service.auth
         {
             if (_context.Users.Any(u => u.Username == registerDTO.Username))
             {
-                
+                throw new ConflictException("Username already exists");
             }
             if (_context.Users.Any(u => u.Email == registerDTO.Email))
             {
-                
+                throw new ConflictException("Email already exists");
             }
             if (registerDTO.Password != registerDTO.ConfirmPassword)
             {
-                
+                throw new BadRequestException("Passwords do not match");
             }
             return true;
         }
