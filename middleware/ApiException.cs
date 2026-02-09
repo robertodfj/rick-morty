@@ -1,4 +1,4 @@
-namespace RickYMorty.middlware
+namespace RickYMorty.middleware
 {
     public class ApiException : Exception
     {
