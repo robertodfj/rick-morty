@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using RickYMorty.data;
 using RickYMorty.dto;
 
@@ -17,49 +18,57 @@ namespace RickYMorty.service
         public async Task<CharacterResponse> CaptureCharacter(GetCharacterDTO getCharacterDTO)
         {
             var user = await _context.Users.FindAsync(getCharacterDTO.OwnerID);
+            var existing = await _context.Characters.FirstOrDefaultAsync(c => c.Id == getCharacterDTO.Id);
             if (user == null)
             {
                 throw new Exception("User not found");
             }
-
-            if(!CaptureSuccess(user.TimesWorked ?? 0))
+            if (getCharacterDTO.Id <= 0)
+            {
+                throw new Exception("Invalid character ID");
+            }
+            if (existing != null)
+            {
+                throw new Exception($"Character already owned by user {existing.OwnedByUserId}");
+            }
+            if (!CaptureSuccess(user.TimesWorked ?? 0))
             {
                 throw new Exception("Capture failed. Keep working to increase your chances!");
             }
 
             var response = await _httpClient.GetFromJsonAsync<CharacterResponse>($"https://rickandmortyapi.com/api/character/{getCharacterDTO.Id}");
-                if (response == null)
-                {
-                    throw new Exception("Character not found");
-                }
+            if (response == null)
+            {
+                throw new Exception("Character not found");
+            }
 
-                var character = new model.Character
-                {
-                    Id = response.Id,
-                    Name = response.Name,
-                    Status = response.Status,
-                    Species = response.Species,
-                    Gender = response.Gender,
-                    ForSale = false,
-                    Price = 0,
-                    OwnedByUserId = getCharacterDTO.OwnerID
-                };
+            var character = new model.Character
+            {
+                Id = response.Id,
+                Name = response.Name,
+                Status = response.Status,
+                Species = response.Species,
+                Gender = response.Gender,
+                ForSale = false,
+                Price = 0,
+                OwnedByUserId = getCharacterDTO.OwnerID
+            };
 
-                _context.Characters.Add(character);
-                await _context.SaveChangesAsync();
+            _context.Characters.Add(character);
+            await _context.SaveChangesAsync();
 
-                var characterResponse = new CharacterResponse
-                {
-                    Id = character.Id,
-                    Name = character.Name,
-                    Status = character.Status,
-                    Species = character.Species,
-                    Gender = character.Gender,
-                    ForSale = character.ForSale,
-                    Price = character.Price
-                };
+            var characterResponse = new CharacterResponse
+            {
+                Id = character.Id,
+                Name = character.Name,
+                Status = character.Status,
+                Species = character.Species,
+                Gender = character.Gender,
+                ForSale = character.ForSale,
+                Price = character.Price
+            };
 
-                return characterResponse;
+            return characterResponse;
 
         }
 

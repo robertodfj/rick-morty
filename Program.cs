@@ -41,9 +41,6 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 }
 
 
-// Añadir probabilidad de caza pequeña para el principio no valgan dinero y haya que trabajar para comprar a otros usuarios, (Se puede añadir level y cuanto mas veces trabajes y captures mas facil sea capturar)
-// https://rickandmortyapi.com/api/episode/51
-
 // Crear un manejo de errores personalizado para la API, con un middleware
 
 // Crear el token y uso de jwt para autenticación y autorización
