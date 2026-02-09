@@ -2,6 +2,7 @@ using RickYMorty.data;
 using RickYMorty.dto.auth;
 using RickYMorty.middleware;
 using RickYMorty.model;
+using RickYMorty.token;
 
 namespace RickYMorty.service.auth
 {
@@ -54,7 +55,7 @@ namespace RickYMorty.service.auth
                 throw new BadRequestException("Invalid username or password");
             }
         
-            return "Crear el token aqui"; 
+            return new GenerateToken().generateToken(user, _configuration); 
         }
 
         public async Task<bool> ValidateUser(RegisterDTO registerDTO)
