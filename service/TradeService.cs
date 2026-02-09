@@ -48,7 +48,7 @@ namespace RickYMorty.service
         public async Task<string> PutCharacterForSale(int userId, int characterId, double price)
         {
             var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == characterId && c.OwnedByUserId == userId);
-            if (price == 0)
+            if (price <= 0)
             {
                 throw new Exception("Price must be greater than 0.");
             }
@@ -72,7 +72,7 @@ namespace RickYMorty.service
         public async Task<string> PutEpisodeForSale(int userId, int episodeId, double price)
         {
             var episode = await _context.Episodes.FirstOrDefaultAsync(e => e.Id == episodeId && e.OwnedByUserId == userId);
-            if (price == 0)
+            if (price <= 0)
             {
                 throw new Exception("Price must be greater than 0.");
             }
@@ -113,6 +113,12 @@ namespace RickYMorty.service
             {
                 throw new Exception("You cannot buy your own character.");
             }
+
+            var seller = await _context.Users.FirstOrDefaultAsync(u => u.Id == character.OwnedByUserId);
+            if (seller != null)            {
+                seller.Money += character.Price;
+            }
+
             user.Money -= character.Price;
             character.OwnedByUserId = buyerId;
             character.ForSale = false;
@@ -150,6 +156,11 @@ namespace RickYMorty.service
             {
                 throw new Exception("You cannot buy your own episode.");
             }
+            var seller = await _context.Users.FirstOrDefaultAsync(u => u.Id == episode.OwnedByUserId);
+            if (seller != null)            {
+                seller.Money += episode.Price;
+            }
+
             user.Money -= episode.Price;
             episode.OwnedByUserId = buyerId;
             episode.ForSale = false;
