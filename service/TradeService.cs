@@ -46,10 +46,10 @@ namespace RickYMorty.service
         }
 
         // Poner a la venta un personaje o episodio 
-        public async Task<string> PutCharacterForSale(int userId, int characterId, double price)
+        public async Task<string> PutCharacterForSale(int userId, PutItemForSaleDTO putCharacterForSaleDTO)
         {
-            var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == characterId && c.OwnedByUserId == userId);
-            if (price <= 0)
+            var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == putCharacterForSaleDTO.ItemId && c.OwnedByUserId == userId);
+            if (putCharacterForSaleDTO.Price <= 0)
             {
                 throw new BadRequestException("Price must be greater than 0.");
             }
@@ -64,16 +64,16 @@ namespace RickYMorty.service
             }
 
             character.ForSale = true;
-            character.Price = price;
+            character.Price = putCharacterForSaleDTO.Price;
             await _context.SaveChangesAsync();
 
-            return $"Character with ID {characterId} is now for sale at price {price}.";
+            return $"Character with ID {putCharacterForSaleDTO.ItemId} is now for sale at price {putCharacterForSaleDTO.Price}.";
         }
 
-        public async Task<string> PutEpisodeForSale(int userId, int episodeId, double price)
+        public async Task<string> PutEpisodeForSale(int userId, PutItemForSaleDTO putEpisodeForSaleDTO)
         {
-            var episode = await _context.Episodes.FirstOrDefaultAsync(e => e.Id == episodeId && e.OwnedByUserId == userId);
-            if (price <= 0)
+            var episode = await _context.Episodes.FirstOrDefaultAsync(e => e.Id == putEpisodeForSaleDTO.ItemId && e.OwnedByUserId == userId);
+            if (putEpisodeForSaleDTO.Price <= 0)
             {
                 throw new BadRequestException("Price must be greater than 0.");
             }
@@ -87,10 +87,10 @@ namespace RickYMorty.service
             }
 
             episode.ForSale = true;
-            episode.Price = price;
+            episode.Price = putEpisodeForSaleDTO.Price;
             await _context.SaveChangesAsync();
 
-            return $"Episode with ID {episodeId} is now for sale at price {price}.";
+            return $"Episode with ID {putEpisodeForSaleDTO.ItemId} is now for sale at price {putEpisodeForSaleDTO.Price}.";
         }
 
         // Comporar un personaje o episodio
