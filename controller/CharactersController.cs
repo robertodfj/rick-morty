@@ -41,7 +41,7 @@ namespace RickYMorty.controller
         public async Task<IActionResult> MyCharacters()
         {
             string username = User.Claims.First(c => c.Type == "Username").Value;
-            var characters = await userService.GetUserByUsername(username);
+            var characters = await userService.GetUserCharacters(username);
             return Ok(characters);
         }
 

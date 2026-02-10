@@ -17,9 +17,9 @@ namespace RickYMorty.service
             _context = context;
         }
 
-        public async Task<EpisodeResponse> CaptureEpisode(GetEpisode getEpisode)
+        public async Task<EpisodeResponse> CaptureEpisode(int ownerId, GetEpisode getEpisode)
         {
-            var user = await _context.Users.FindAsync(getEpisode.OwnerID);
+            var user = await _context.Users.FindAsync(ownerId);
             var existing = await _context.Episodes.FirstOrDefaultAsync(e => e.Id == getEpisode.Id);
             if (user == null)
             {
@@ -55,7 +55,7 @@ namespace RickYMorty.service
                 Created = response.Created ?? string.Empty,
                 ForSale = false,
                 Price = 0,
-                OwnedByUserId = getEpisode.OwnerID
+                OwnedByUserId = ownerId
             };
 
             _context.Episodes.Add(episode);
