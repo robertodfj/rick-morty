@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RickYMorty.dto;
+using RickYMorty.middleware;
 using RickYMorty.service;
 
 namespace RickYMorty.controller
@@ -27,12 +28,10 @@ namespace RickYMorty.controller
         [Authorize]
         public async Task<IActionResult> CaptureCharacter([FromBody] GetCharacterDTO getCharacterDTO)
         {
-            int ownerId = int.Parse(User.Claims.First(c => c.Type == "UserID").Value);
-           var characterResponse = await characterService.CaptureCharacter(getCharacterDTO, ownerId);
-
-           _logger.LogInformation("Character captured successfully by user {UserId} with character ID {CharacterId}", ownerId, getCharacterDTO.Id);
-           
-           return Ok(characterResponse);
+            var ownerId = getUserID();
+            var characterResponse = await characterService.CaptureCharacter(getCharacterDTO, ownerId);
+            _logger.LogInformation("Character captured successfully by user {UserId} with character ID {CharacterId}", ownerId, getCharacterDTO.Id);
+            return Ok(characterResponse);
         }
 
 
@@ -47,9 +46,9 @@ namespace RickYMorty.controller
         }
 
         // Ver personajes de un usuario
-        [HttpGet("user-characters")]
+        [HttpGet("characters/{username}")]
         [Authorize]
-        public async Task<IActionResult> GetUserCharacters([FromBody] string username)
+        public async Task<IActionResult> GetUserCharacters(string username)
         {
             var characters = await userService.GetUserCharacters(username);
             return Ok(characters);
@@ -67,12 +66,34 @@ namespace RickYMorty.controller
         // Poner un personaje a la venta
         [HttpPost("put-for-sale")]
         [Authorize]
-        public async Task<IActionResult> PutCharacterForSale([FromBody] ItemForSale putCharacterForSale)
+        public async Task<IActionResult> PutCharacterForSale([FromBody] PutItemForSaleDTO putCharacterForSale)
         {
-            int userId = int.Parse(User.Claims.First(c => c.Type == "UserID").Value);
+            var userId = getUserID();
             var result = await tradeService.PutCharacterForSale(userId, putCharacterForSale);
             _logger.LogInformation("Character with ID {CharacterId} put for sale by user {UserId} at price {Price}", putCharacterForSale.ItemId, userId, putCharacterForSale.Price);
             return Ok(result);
+        }
+
+        // Comprar un personaje
+        [HttpPost("buy")]
+        [Authorize]
+        public async Task<IActionResult> BuyCharacter([FromBody] int characterId)
+        {
+            var buyerId = getUserID();
+            var result = await tradeService.BuyCharacter(buyerId, characterId);
+            _logger.LogInformation("Character with ID {CharacterId} bought by user {UserId}", characterId, buyerId);
+            return Ok(result);
+        }
+
+
+        public int getUserID()
+        {
+            var userIdClaim = User.FindFirst("UserID");
+            if (userIdClaim == null)
+                throw new UnauthorizedException("User ID claim not found.");
+
+            int userId = int.Parse(userIdClaim.Value);
+            return userId;
         }
     }
 }
