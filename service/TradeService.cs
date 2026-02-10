@@ -15,7 +15,7 @@ namespace RickYMorty.service
         }
 
         // Ver tienda de characters y episodes
-        public async Task<List<TradeResponse>> GetCharactersForSale()
+        public async Task<List<TradeResponse>> GetForSale()
         {
             var charactersForSale = await _context.Characters.Where(c => c.ForSale).ToListAsync();
             var episodesForSale = await _context.Episodes.Where(e => e.ForSale).ToListAsync();
