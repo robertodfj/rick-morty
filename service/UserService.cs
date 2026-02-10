@@ -57,12 +57,52 @@ namespace RickYMorty.service
             return response;
         }
 
+        public async Task<UserInfoResponse> GetUserInfo(string username)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+            if (user == null)
+                throw new NotFoundException("User not found");
+
+            var characters = await _context.Characters
+                .Where(c => c.OwnedByUserId == user.Id)
+                .Select(c => new CharacterResponse
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Status = c.Status,
+                    Species = c.Species,
+                    Gender = c.Gender
+                }).ToListAsync();
+
+            var episodes = await _context.Episodes
+                .Where(e => e.OwnedByUserId == user.Id)
+                .Select(e => new EpisodeResponse
+                {
+                    Id = e.Id,
+                    Name = e.Name,
+                    AirDate = e.AirDate,
+                    Episode = e.EpisodeCode,
+                    Characters = e.Characters,
+                    Url = e.Url,
+                    Created = e.Created
+                }).ToListAsync();
+
+            return new UserInfoResponse
+            {
+                Username = user.Username,
+                Characters = characters,
+                Episodes = episodes,
+                Money = user.Money,
+                LastWorked = user.LastWorked
+            };
+        }
+
         public async Task<string> Working(int id)
         {
             var user = await GetUserByID(id);
             if (user.LastWorked.HasValue)
             {
-               var timeSinceLastWork = DateTime.Now - user.LastWorked.Value;
+                var timeSinceLastWork = DateTime.Now - user.LastWorked.Value;
                 if (timeSinceLastWork.TotalMinutes < 15)
                 {
                     var minutesLeft = 15 - (int)timeSinceLastWork.TotalMinutes;
