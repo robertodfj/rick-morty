@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RickYMorty.dto;
@@ -28,7 +29,7 @@ namespace RickYMorty.controller
         [Authorize]
         public async Task<IActionResult> CaptureCharacter([FromBody] GetCharacterDTO getCharacterDTO)
         {
-            var ownerId = getUserID();
+            var ownerId = GetUserID();
             var characterResponse = await characterService.CaptureCharacter(getCharacterDTO, ownerId);
             _logger.LogInformation("Character captured successfully by user {UserId} with character ID {CharacterId}", ownerId, getCharacterDTO.Id);
             return Ok(characterResponse);
@@ -40,7 +41,7 @@ namespace RickYMorty.controller
         [Authorize]
         public async Task<IActionResult> MyCharacters()
         {
-            string username = User.Claims.First(c => c.Type == "Username").Value;
+            var username = GetUsername();
             var characters = await userService.GetUserCharacters(username);
             return Ok(characters);
         }
@@ -68,7 +69,7 @@ namespace RickYMorty.controller
         [Authorize]
         public async Task<IActionResult> PutCharacterForSale([FromBody] PutItemForSaleDTO putCharacterForSale)
         {
-            var userId = getUserID();
+            var userId = GetUserID();
             var result = await tradeService.PutCharacterForSale(userId, putCharacterForSale);
             _logger.LogInformation("Character with ID {CharacterId} put for sale by user {UserId} at price {Price}", putCharacterForSale.ItemId, userId, putCharacterForSale.Price);
             return Ok(result);
@@ -79,21 +80,31 @@ namespace RickYMorty.controller
         [Authorize]
         public async Task<IActionResult> BuyCharacter([FromBody] int characterId)
         {
-            var buyerId = getUserID();
+            var buyerId = GetUserID();
             var result = await tradeService.BuyCharacter(buyerId, characterId);
             _logger.LogInformation("Character with ID {CharacterId} bought by user {UserId}", characterId, buyerId);
             return Ok(result);
         }
 
 
-        public int getUserID()
+        // Obtener ID del usuario autenticado
+        private int GetUserID()
         {
-            var userIdClaim = User.FindFirst("UserID");
-            if (userIdClaim == null)
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
                 throw new UnauthorizedException("User ID claim not found.");
 
-            int userId = int.Parse(userIdClaim.Value);
-            return userId;
+            return int.Parse(userIdClaim);
+        }
+
+        // Obtener username del usuario autenticado
+        private string GetUsername()
+        {
+            var usernameClaim = User.FindFirst(ClaimTypes.Name)?.Value;
+            if (string.IsNullOrEmpty(usernameClaim))
+                throw new UnauthorizedException("Username claim not found.");
+
+            return usernameClaim;
         }
     }
 }

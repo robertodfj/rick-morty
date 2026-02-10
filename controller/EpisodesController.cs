@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using RickYMorty.dto;
 using RickYMorty.middleware;
 using RickYMorty.service;
+using System.Security.Claims;
 
 namespace RickYMorty.controller
 {
@@ -23,24 +24,23 @@ namespace RickYMorty.controller
             this._logger = logger;
         }
 
-         // Capturar un episodio
+        // Capturar un episodio
         [HttpPost("capture")]
         [Authorize]
         public async Task<IActionResult> CaptureEpisode([FromBody] GetEpisode getEpisodeDTO)
         {
-            var ownerId = getUserID();
+            var ownerId = GetUserID();
             var episodeResponse = await episodeService.CaptureEpisode(ownerId, getEpisodeDTO);
             _logger.LogInformation("Episode captured successfully by user {UserId} with episode ID {EpisodeId}", ownerId, getEpisodeDTO.Id);
             return Ok(episodeResponse);
         }
-
 
         // Ver mis episodios
         [HttpGet("my-episodes")]
         [Authorize]
         public async Task<IActionResult> MyEpisodes()
         {
-            string username = User.Claims.First(c => c.Type == "Username").Value;
+            var username = GetUsername();
             var episodes = await userService.GetUserEpisodes(username);
             return Ok(episodes);
         }
@@ -68,7 +68,7 @@ namespace RickYMorty.controller
         [Authorize]
         public async Task<IActionResult> PutEpisodeForSale([FromBody] PutItemForSaleDTO putEpisodeForSale)
         {
-            var userId = getUserID();
+            var userId = GetUserID();
             var result = await tradeService.PutEpisodeForSale(userId, putEpisodeForSale);
             _logger.LogInformation("Episode with ID {EpisodeId} put for sale by user {UserId} at price {Price}", putEpisodeForSale.ItemId, userId, putEpisodeForSale.Price);
             return Ok(result);
@@ -79,21 +79,30 @@ namespace RickYMorty.controller
         [Authorize]
         public async Task<IActionResult> BuyEpisode([FromBody] int episodeId)
         {
-            var buyerId = getUserID();
+            var buyerId = GetUserID();
             var result = await tradeService.BuyEpisode(buyerId, episodeId);
             _logger.LogInformation("Episode with ID {EpisodeId} bought by user {UserId}", episodeId, buyerId);
             return Ok(result);
         }
 
-
-        public int getUserID()
+        // Obtener ID del usuario autenticado
+        private int GetUserID()
         {
-            var userIdClaim = User.FindFirst("UserID");
-            if (userIdClaim == null)
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
                 throw new UnauthorizedException("User ID claim not found.");
 
-            int userId = int.Parse(userIdClaim.Value);
-            return userId;
+            return int.Parse(userIdClaim);
+        }
+
+        // Obtener username del usuario autenticado
+        private string GetUsername()
+        {
+            var usernameClaim = User.FindFirst(ClaimTypes.Name)?.Value;
+            if (string.IsNullOrEmpty(usernameClaim))
+                throw new UnauthorizedException("Username claim not found.");
+
+            return usernameClaim;
         }
     }
 }
