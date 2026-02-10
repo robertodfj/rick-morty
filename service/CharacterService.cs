@@ -16,9 +16,9 @@ namespace RickYMorty.service
             _context = context;
         }
 
-        public async Task<CharacterResponse> CaptureCharacter(GetCharacterDTO getCharacterDTO)
+        public async Task<CharacterResponse> CaptureCharacter(GetCharacterDTO getCharacterDTO, int ownerId)
         {
-            var user = await _context.Users.FindAsync(getCharacterDTO.OwnerID);
+            var user = await _context.Users.FindAsync(ownerId);
             var existing = await _context.Characters.FirstOrDefaultAsync(c => c.Id == getCharacterDTO.Id);
             if (user == null)
             {
@@ -52,7 +52,7 @@ namespace RickYMorty.service
                 Gender = response.Gender,
                 ForSale = false,
                 Price = 0,
-                OwnedByUserId = getCharacterDTO.OwnerID
+                OwnedByUserId = ownerId
             };
 
             _context.Characters.Add(character);
