@@ -46,7 +46,7 @@ namespace RickYMorty.controller
         }
 
         // Ver episodios de un usuario
-        [HttpGet("episodes/{username}")]
+        [HttpGet("{username}")]
         [Authorize]
         public async Task<IActionResult> GetUserEpisodes(string username)
         {

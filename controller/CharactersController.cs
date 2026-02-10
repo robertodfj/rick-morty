@@ -46,7 +46,7 @@ namespace RickYMorty.controller
         }
 
         // Ver personajes de un usuario
-        [HttpGet("characters/{username}")]
+        [HttpGet("{username}")]
         [Authorize]
         public async Task<IActionResult> GetUserCharacters(string username)
         {
