@@ -171,7 +171,7 @@ Pruebas de validación:
 }
 ⸻
 
-2.2 GET /characters/my-characters 
+2.2 GET /characters/my-characters ✅
 
 Endpoint:
 GET http://localhost:5235/characters/my-characters
@@ -209,7 +209,7 @@ Pruebas de validación:
 
 ⸻
 
-2.3 GET /characters/{username} 
+2.3 GET /characters/{username} ✅
 
 Endpoint:
 GET http://localhost:5235/characters/testuser
@@ -234,6 +234,10 @@ Respuesta esperada (200 OK):
 
 Pruebas de validación:
 	•	404 Not Found si el usuario no existe.
+{
+    "message": "User not found"
+}
+
 
 ⸻
 
