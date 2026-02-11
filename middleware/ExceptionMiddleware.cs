@@ -1,6 +1,6 @@
 using RickYMorty.middleware;
 
-namespace RickYMorty.middlware
+namespace RickYMorty.middleware
 {
     public class ExceptionMiddleware
     {
