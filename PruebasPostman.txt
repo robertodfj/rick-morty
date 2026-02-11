@@ -115,3 +115,208 @@ Prueba de validacion:
 {
     "message": "Authentication token is missing or invalid"
 }
+
+# 2️⃣ PRUEBAS DE CHARACTER
+
+Header común para endpoints protegidos:
+
+Authorization: Bearer TU_TOKEN_AQUI
+Content-Type: application/json
+
+
+⸻
+
+2.1 POST /characters/capture ✅
+
+Endpoint:
+POST http://localhost:5235/characters/capture
+
+Headers:
+Content-Type: application/json
+Authorization: Bearer TU_TOKEN_AQUI
+
+Body (JSON):
+
+{
+  "id": 1
+}
+
+Respuesta esperada (200 OK):
+
+{
+  "id": 1,
+  "name": "Rick Sanchez",
+  "status": "Alive",
+  "species": "Human",
+  "gender": "Male",
+  "ownedByUserId": 1,
+  "forSale": false,
+  "price": 0
+}
+
+Pruebas de validación:
+	•	401 Unauthorized si no se incluye el token:
+
+{
+  "message": "Authentication token is missing or invalid"
+}
+
+409 Conflict
+{
+    "message": "Capture failed. Keep working to increase your chances!"
+}
+
+{
+    "message": "Character already owned by user 1"
+}
+⸻
+
+2.2 GET /characters/my-characters 
+
+Endpoint:
+GET http://localhost:5235/characters/my-characters
+
+Headers:
+Authorization: Bearer TU_TOKEN_AQUI
+
+Respuesta esperada (200 OK):
+
+[
+  {
+    "id": 1,
+    "name": "Rick Sanchez",
+    "status": "Alive",
+    "species": "Human",
+    "gender": "Male",
+    "ownedByUserId": 1,
+    "forSale": false,
+    "price": 0
+  },
+  {
+    "id": 2,
+    "name": "Morty Smith",
+    "status": "Alive",
+    "species": "Human",
+    "gender": "Male",
+    "ownedByUserId": 1,
+    "forSale": false,
+    "price": 0
+  }
+]
+
+Pruebas de validación:
+	•	401 Unauthorized si no se incluye token.
+
+⸻
+
+2.3 GET /characters/{username} 
+
+Endpoint:
+GET http://localhost:5235/characters/testuser
+
+Headers:
+Authorization: Bearer TU_TOKEN_AQUI
+
+Respuesta esperada (200 OK):
+
+[
+  {
+    "id": 1,
+    "name": "Rick Sanchez",
+    "status": "Alive",
+    "species": "Human",
+    "gender": "Male",
+    "ownedByUserId": 1,
+    "forSale": false,
+    "price": 0
+  }
+]
+
+Pruebas de validación:
+	•	404 Not Found si el usuario no existe.
+
+⸻
+
+2.4 GET /characters/for-sale 
+
+Endpoint:
+GET http://localhost:5235/characters/for-sale
+
+Headers:
+Authorization: Bearer TU_TOKEN_AQUI
+
+Respuesta esperada (200 OK):
+
+[
+  {
+    "id": 3,
+    "name": "Birdperson",
+    "status": "Dead",
+    "species": "Alien",
+    "gender": "Male",
+    "ownedByUserId": 2,
+    "forSale": true,
+    "price": 500
+  }
+]
+
+
+⸻
+
+2.5 POST /characters/put-for-sale 
+
+Endpoint:
+POST http://localhost:5235/characters/put-for-sale
+
+Headers:
+Authorization: Bearer TU_TOKEN_AQUI
+Content-Type: application/json
+
+Body (JSON):
+
+{
+  "itemId": 1,
+  "price": 100
+}
+
+Respuesta esperada (200 OK):
+
+{
+  "message": "Character put for sale successfully",
+  "characterId": 1,
+  "price": 100
+}
+
+Pruebas de validación:
+	•	401 Unauthorized si no se incluye token.
+	•	400 Bad Request si el personaje no pertenece al usuario.
+
+⸻
+
+2.6 POST /characters/buy 
+
+Endpoint:
+POST http://localhost:5235/characters/buy
+
+Headers:
+Authorization: Bearer TU_TOKEN_AQUI
+Content-Type: application/json
+
+Body (JSON):
+
+1
+
+Donde 1 es el characterId que se quiere comprar.
+
+Respuesta esperada (200 OK):
+
+{
+  "message": "Character purchased successfully",
+  "characterId": 1,
+  "buyerId": 1,
+  "price": 100
+}
+
+Pruebas de validación:
+	•	401 Unauthorized si no se incluye token.
+	•	400 Bad Request si no hay suficiente dinero o el personaje no está a la venta.
