@@ -1,0 +1,111 @@
+# **** PRUEBAS DE POSTMAN ****
+
+Base URL:
+http://localhost:5235
+
+--------------------------------------------------
+
+# 1️⃣ PRUEBAS DE AUTH
+
+## 1.1 POST /auth/register
+
+Endpoint:
+POST http://localhost:5235/auth/register
+
+Headers:
+Content-Type: application/json
+
+Body (JSON):
+{
+  "username": "testuser",
+  "email": "testuser@gmail.com",
+  "password": "1234567890",
+  "confirmPassword": "1234567890"
+}
+
+Respuesta esperada (200 OK):
+{
+  "message": "User registered successfully"
+}
+
+Pruebas realizadas de validaciones:
+{
+    "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+    "title": "One or more validation errors occurred.",
+    "status": 400,
+    "errors": {
+        "$": [
+            "JSON deserialization for type 'RickYMorty.dto.auth.RegisterDTO' was missing required properties including: 'email'; 'confirmPassword'."
+        ],
+        "registerDTO": [
+            "The registerDTO field is required."
+        ]
+    },
+    "traceId": "00-ceeebc3f69dd6d40d2214bb4efa1e5df-f81a9321f142fbd2-00"
+
+}
+{
+    "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+    "title": "One or more validation errors occurred.",
+    "status": 400,
+    "errors": {
+        "Password": [
+            "The field Password must be a string with a minimum length of 10 and a maximum length of 100."
+        ],
+        "ConfirmPassword": [
+            "The field ConfirmPassword must be a string with a minimum length of 10 and a maximum length of 100."
+        ]
+    },
+    "traceId": "00-cf781f88fffed9bf7542591d1791b6df-c1cd7ae6e807d11c-00"
+}
+
+--------------------------------------------------
+
+## 1.2 POST /auth/login
+
+Endpoint:
+POST http://localhost:5235/auth/login
+
+Headers:
+Content-Type: application/json
+
+Body (JSON):
+{
+  "username": "testuser",
+  "password": "123456"
+}
+
+Respuesta esperada (200 OK):
+{
+  "token": "JWT_TOKEN_GENERADO"
+}
+
+⚠️ IMPORTANTE:
+Copiar el token y usarlo en las siguientes peticiones protegidas.
+
+Header para endpoints protegidos:
+Authorization: Bearer TU_TOKEN_AQUI
+
+--------------------------------------------------
+
+## 1.3 POST /auth/register-admin
+
+⚠️ Requiere rol Admin
+
+Endpoint:
+POST http://localhost:5235/auth/register-admin
+
+Headers:
+Content-Type: application/json
+Authorization: Bearer TU_TOKEN_ADMIN
+
+Body (JSON):
+{
+  "username": "admin2",
+  "password": "123456"
+}
+
+Respuesta esperada (200 OK):
+{
+  "message": "Admin registered successfully"
+}
