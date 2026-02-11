@@ -18,7 +18,7 @@ namespace RickYMorty.token
             };
 
             var tokenKey = configuration.GetSection("AppSettings:Token").Value;
-            
+
 
             if (tokenKey == null)
             {
@@ -26,8 +26,7 @@ namespace RickYMorty.token
             }
 
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(tokenKey!));
-
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
 
             var token = new JwtSecurityToken(
                 claims: claims,
