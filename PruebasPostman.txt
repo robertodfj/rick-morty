@@ -322,3 +322,10 @@ Respuesta esperada (200 OK):
 Pruebas de validación:
 	•	401 Unauthorized si no se incluye token.
 	•	400 Bad Request si no hay suficiente dinero o el personaje no está a la venta.
+        {
+        "message": "Character not found or not for sale."
+        }
+    •   409 No puedes comprar tu propio character
+        {
+        "message": "You cannot buy your own character."
+        }
