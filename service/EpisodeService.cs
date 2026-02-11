@@ -47,12 +47,12 @@ namespace RickYMorty.service
             var episode = new Episode
             {
                 Id = response.Id,
-                Name = response.Name,
-                AirDate = response.AirDate,
-                EpisodeCode = response.Episode,
-                Characters = response.Characters,
+                Name = response.Name ?? "Unknown",
+                AirDate = string.IsNullOrEmpty(response.AirDate) ? DateTime.UtcNow.ToString("yyyy-MM-dd") : response.AirDate,
+                EpisodeCode = response.Episode ?? "Unknown",
+                Characters = response.Characters ?? Array.Empty<string>(),
                 Url = response.Url ?? string.Empty,
-                Created = response.Created ?? string.Empty,
+                Created = string.IsNullOrEmpty(response.Created) ? DateTime.UtcNow.ToString("yyyy-MM-dd") : response.Created,
                 ForSale = false,
                 Price = 0,
                 OwnedByUserId = ownerId

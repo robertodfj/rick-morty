@@ -293,6 +293,10 @@ Pruebas de validación:
 {
     "message": "Character not found or you do not own this character."
 }
+409 Conflict
+{
+    "message": "Character is already for sale."
+}
 ⸻
 
 2.6 POST /characters/buy 
@@ -329,3 +333,247 @@ Pruebas de validación:
         {
         "message": "You cannot buy your own character."
         }
+ 3️⃣ PRUEBAS DE EPISODES
+
+Header común para endpoints protegidos:
+
+Authorization: Bearer TU_TOKEN_AQUI
+Content-Type: application/json
+
+⸻
+
+3.1 POST /episodes/capture ✅
+
+Endpoint:
+POST http://localhost:5235/episodes/capture
+
+Headers:
+Content-Type: application/json
+Authorization: Bearer TU_TOKEN_AQUI
+
+Body (JSON):
+{
+  "id": 1
+}
+
+Respuesta esperada (200 OK):
+{
+    "id": 2,
+    "name": "Lawnmower Dog",
+    "airDate": "2026-02-11",
+    "episode": "S01E02",
+    "characters": [
+        "https://rickandmortyapi.com/api/character/1",
+        "https://rickandmortyapi.com/api/character/2",
+        "https://rickandmortyapi.com/api/character/38",
+        "https://rickandmortyapi.com/api/character/46",
+        "https://rickandmortyapi.com/api/character/63",
+        "https://rickandmortyapi.com/api/character/80",
+        "https://rickandmortyapi.com/api/character/175",
+        "https://rickandmortyapi.com/api/character/221",
+        "https://rickandmortyapi.com/api/character/239",
+        "https://rickandmortyapi.com/api/character/246",
+        "https://rickandmortyapi.com/api/character/304",
+        "https://rickandmortyapi.com/api/character/305",
+        "https://rickandmortyapi.com/api/character/306",
+        "https://rickandmortyapi.com/api/character/329",
+        "https://rickandmortyapi.com/api/character/338",
+        "https://rickandmortyapi.com/api/character/396",
+        "https://rickandmortyapi.com/api/character/397",
+        "https://rickandmortyapi.com/api/character/398",
+        "https://rickandmortyapi.com/api/character/405"
+    ],
+    "url": "https://rickandmortyapi.com/api/episode/2",
+    "created": "2017-11-10T12:56:33.916Z",
+    "forSale": false,
+    "price": 0
+}
+
+Pruebas de validación:
+401 Unauthorized si no se incluye token
+409 Conflict si no se puede capturar
+{
+    "message": "Capture failed. Keep working to increase your chances!"
+}
+Mensaje si ya lo posee el usuario
+
+⸻
+
+3.2 GET /episodes/my-episodes ✅
+
+Endpoint:
+GET http://localhost:5235/episodes/my-episodes
+
+Headers:
+Authorization: Bearer TU_TOKEN_AQUI
+
+Respuesta esperada (200 OK):
+[
+    {
+        "id": 2,
+        "name": "Lawnmower Dog",
+        "airDate": "2026-02-11",
+        "episode": "S01E02",
+        "characters": [
+            "https://rickandmortyapi.com/api/character/1",
+            "https://rickandmortyapi.com/api/character/2",
+            "https://rickandmortyapi.com/api/character/38",
+            "https://rickandmortyapi.com/api/character/46",
+            "https://rickandmortyapi.com/api/character/63",
+            "https://rickandmortyapi.com/api/character/80",
+            "https://rickandmortyapi.com/api/character/175",
+            "https://rickandmortyapi.com/api/character/221",
+            "https://rickandmortyapi.com/api/character/239",
+            "https://rickandmortyapi.com/api/character/246",
+            "https://rickandmortyapi.com/api/character/304",
+            "https://rickandmortyapi.com/api/character/305",
+            "https://rickandmortyapi.com/api/character/306",
+            "https://rickandmortyapi.com/api/character/329",
+            "https://rickandmortyapi.com/api/character/338",
+            "https://rickandmortyapi.com/api/character/396",
+            "https://rickandmortyapi.com/api/character/397",
+            "https://rickandmortyapi.com/api/character/398",
+            "https://rickandmortyapi.com/api/character/405"
+        ],
+        "url": "https://rickandmortyapi.com/api/episode/2",
+        "created": "2017-11-10T12:56:33.916Z",
+        "forSale": false,
+        "price": 0
+    }
+]
+
+Pruebas de validación:
+401 Unauthorized si no se incluye token
+
+⸻
+
+3.3 GET /episodes/{username}
+
+Endpoint:
+GET http://localhost:5235/episodes/testuser
+
+Headers:
+Authorization: Bearer TU_TOKEN_AQUI
+
+Respuesta esperada (200 OK):
+[
+    {
+        "id": 2,
+        "name": "Lawnmower Dog",
+        "airDate": "2026-02-11",
+        "episode": "S01E02",
+        "characters": [
+            "https://rickandmortyapi.com/api/character/1",
+            "https://rickandmortyapi.com/api/character/2",
+            "https://rickandmortyapi.com/api/character/38",
+            "https://rickandmortyapi.com/api/character/46",
+            "https://rickandmortyapi.com/api/character/63",
+            "https://rickandmortyapi.com/api/character/80",
+            "https://rickandmortyapi.com/api/character/175",
+            "https://rickandmortyapi.com/api/character/221",
+            "https://rickandmortyapi.com/api/character/239",
+            "https://rickandmortyapi.com/api/character/246",
+            "https://rickandmortyapi.com/api/character/304",
+            "https://rickandmortyapi.com/api/character/305",
+            "https://rickandmortyapi.com/api/character/306",
+            "https://rickandmortyapi.com/api/character/329",
+            "https://rickandmortyapi.com/api/character/338",
+            "https://rickandmortyapi.com/api/character/396",
+            "https://rickandmortyapi.com/api/character/397",
+            "https://rickandmortyapi.com/api/character/398",
+            "https://rickandmortyapi.com/api/character/405"
+        ],
+        "url": "https://rickandmortyapi.com/api/episode/2",
+        "created": "2017-11-10T12:56:33.916Z",
+        "forSale": false,
+        "price": 0
+    }
+]
+
+Pruebas de validación:
+404 Not Found si el usuario no existe
+{
+    "message": "User not found"
+}
+⸻
+
+3.4 GET /episodes/for-sale
+
+Endpoint:
+GET http://localhost:5235/episodes/for-sale
+
+Headers:
+Authorization: Bearer TU_TOKEN_AQUI
+
+Respuesta esperada (200 OK):
+[
+  {
+    "id": 2,
+    "name": "Lawnmower Dog",
+    "episodeCode": "S01E02",
+    "airDate": "2013-12-09",
+    "ownedByUserId": 2,
+    "forSale": true,
+    "price": 250
+  }
+]
+
+⸻
+
+3.5 POST /episodes/put-for-sale
+
+Endpoint:
+POST http://localhost:5235/episodes/put-for-sale
+
+Headers:
+Authorization: Bearer TU_TOKEN_AQUI
+Content-Type: application/json
+
+Body (JSON):
+{
+  "itemId": 1,
+  "price": 100
+}
+
+Respuesta esperada (200 OK):
+Episode with ID 1 is now for sale at price 100.
+
+Pruebas de validación:
+401 Unauthorized si no se incluye token
+400 Bad Request si el episodio no pertenece al usuario
+{
+    "message": "Character not found or you do not own this character."
+}
+409 Conflict
+{
+    "message": "Episode is already for sale."
+}
+⸻
+
+3.6 POST /episodes/buy
+
+Endpoint:
+POST http://localhost:5235/episodes/buy
+
+Headers:
+Authorization: Bearer TU_TOKEN_AQUI
+Content-Type: application/json
+
+Body (JSON):
+1
+
+Respuesta esperada (200 OK):
+{
+  "message": "Episode purchased successfully",
+  "episodeId": 1,
+  "buyerId": 1,
+  "price": 100
+}
+
+Pruebas de validación:
+401 Unauthorized si no se incluye token
+400 Bad Request si no hay suficiente dinero o el episodio no está a la venta
+409 No puedes comprar tu propio episodio
+{
+    "message": "Episode not found or not for sale."
+}
