@@ -241,7 +241,7 @@ Pruebas de validación:
 
 ⸻
 
-2.4 GET /characters/for-sale 
+2.4 GET /characters/for-sale ✅
 
 Endpoint:
 GET http://localhost:5235/characters/for-sale
@@ -267,7 +267,7 @@ Respuesta esperada (200 OK):
 
 ⸻
 
-2.5 POST /characters/put-for-sale 
+2.5 POST /characters/put-for-sale ✅
 
 Endpoint:
 POST http://localhost:5235/characters/put-for-sale
@@ -285,16 +285,14 @@ Body (JSON):
 
 Respuesta esperada (200 OK):
 
-{
-  "message": "Character put for sale successfully",
-  "characterId": 1,
-  "price": 100
-}
+Character with ID 2 is now for sale at price 100.
 
 Pruebas de validación:
 	•	401 Unauthorized si no se incluye token.
 	•	400 Bad Request si el personaje no pertenece al usuario.
-
+{
+    "message": "Character not found or you do not own this character."
+}
 ⸻
 
 2.6 POST /characters/buy 
