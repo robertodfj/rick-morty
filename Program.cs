@@ -70,8 +70,3 @@ app.MapControllers();
 
 
 app.Run();
-// Probar con postman
-
-// Subir a vercel
-
-// Crear el bot de telegram desde el que poder jugar

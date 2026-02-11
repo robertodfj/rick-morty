@@ -577,3 +577,206 @@ Pruebas de validación:
 {
     "message": "Episode not found or not for sale."
 }
+
+**** PRUEBAS DE POSTMAN: USER CONTROLLER ****
+
+Base URL:
+
+http://localhost:5235
+
+Header común para endpoints protegidos:
+
+Authorization: Bearer TU_TOKEN_AQUI
+Content-Type: application/json
+
+
+⸻
+
+1️⃣ GET /user/my-info
+
+Endpoint:
+
+GET http://localhost:5235/user/my-info
+
+Headers:
+
+Authorization: Bearer TU_TOKEN_AQUI
+
+Respuesta esperada (200 OK):
+
+{
+    "username": "testuser",
+    "characters": [
+        {
+            "id": 1,
+            "name": "Rick Sanchez",
+            "status": "Alive",
+            "species": "Human",
+            "gender": "Male",
+            "forSale": false,
+            "price": 0
+        },
+        {
+            "id": 2,
+            "name": "Morty Smith",
+            "status": "Alive",
+            "species": "Human",
+            "gender": "Male",
+            "forSale": false,
+            "price": 0
+        }
+    ],
+    "episodes": [
+        {
+            "id": 2,
+            "name": "Lawnmower Dog",
+            "airDate": "2026-02-11",
+            "episode": "S01E02",
+            "characters": [
+                "https://rickandmortyapi.com/api/character/1",
+                "https://rickandmortyapi.com/api/character/2",
+                "https://rickandmortyapi.com/api/character/38",
+                "https://rickandmortyapi.com/api/character/46",
+                "https://rickandmortyapi.com/api/character/63",
+                "https://rickandmortyapi.com/api/character/80",
+                "https://rickandmortyapi.com/api/character/175",
+                "https://rickandmortyapi.com/api/character/221",
+                "https://rickandmortyapi.com/api/character/239",
+                "https://rickandmortyapi.com/api/character/246",
+                "https://rickandmortyapi.com/api/character/304",
+                "https://rickandmortyapi.com/api/character/305",
+                "https://rickandmortyapi.com/api/character/306",
+                "https://rickandmortyapi.com/api/character/329",
+                "https://rickandmortyapi.com/api/character/338",
+                "https://rickandmortyapi.com/api/character/396",
+                "https://rickandmortyapi.com/api/character/397",
+                "https://rickandmortyapi.com/api/character/398",
+                "https://rickandmortyapi.com/api/character/405"
+            ],
+            "url": "https://rickandmortyapi.com/api/episode/2",
+            "created": "2017-11-10T12:56:33.916Z",
+            "forSale": false,
+            "price": 0
+        }
+    ],
+    "money": 500,
+    "lastWorked": null
+}
+
+Pruebas de validación:
+	•	401 Unauthorized si no se incluye el token:
+
+{
+  "message": "Username claim not found."
+}
+
+
+⸻
+
+2️⃣ GET /user/info/{username}
+
+Endpoint:
+
+GET http://localhost:5235/user/info/testuser
+
+Headers:
+
+Authorization: Bearer TU_TOKEN_AQUI
+
+Respuesta esperada (200 OK):
+
+{
+    "username": "testuser",
+    "characters": [
+        {
+            "id": 1,
+            "name": "Rick Sanchez",
+            "status": "Alive",
+            "species": "Human",
+            "gender": "Male",
+            "forSale": false,
+            "price": 0
+        },
+        {
+            "id": 2,
+            "name": "Morty Smith",
+            "status": "Alive",
+            "species": "Human",
+            "gender": "Male",
+            "forSale": false,
+            "price": 0
+        }
+    ],
+    "episodes": [
+        {
+            "id": 2,
+            "name": "Lawnmower Dog",
+            "airDate": "2026-02-11",
+            "episode": "S01E02",
+            "characters": [
+                "https://rickandmortyapi.com/api/character/1",
+                "https://rickandmortyapi.com/api/character/2",
+                "https://rickandmortyapi.com/api/character/38",
+                "https://rickandmortyapi.com/api/character/46",
+                "https://rickandmortyapi.com/api/character/63",
+                "https://rickandmortyapi.com/api/character/80",
+                "https://rickandmortyapi.com/api/character/175",
+                "https://rickandmortyapi.com/api/character/221",
+                "https://rickandmortyapi.com/api/character/239",
+                "https://rickandmortyapi.com/api/character/246",
+                "https://rickandmortyapi.com/api/character/304",
+                "https://rickandmortyapi.com/api/character/305",
+                "https://rickandmortyapi.com/api/character/306",
+                "https://rickandmortyapi.com/api/character/329",
+                "https://rickandmortyapi.com/api/character/338",
+                "https://rickandmortyapi.com/api/character/396",
+                "https://rickandmortyapi.com/api/character/397",
+                "https://rickandmortyapi.com/api/character/398",
+                "https://rickandmortyapi.com/api/character/405"
+            ],
+            "url": "https://rickandmortyapi.com/api/episode/2",
+            "created": "2017-11-10T12:56:33.916Z",
+            "forSale": false,
+            "price": 0
+        }
+    ],
+    "money": 500,
+    "lastWorked": null
+}
+
+Pruebas de validación:
+	•	404 Not Found si el usuario no existe:
+
+{
+    "message": "User not found"
+}
+
+
+⸻
+
+3️⃣ GET /user/work
+
+Endpoint:
+
+GET http://localhost:5235/user/work
+
+Headers:
+
+Authorization: Bearer TU_TOKEN_AQUI
+
+Respuesta esperada (200 OK):
+
+{
+    "earnedMoney": "User testuser has worked and earned 100 money. Total money: 600"
+}
+
+Pruebas de validación:
+409 Conflict
+{
+    "message": "You have already worked recently. Please wait 15 more minutes before working again."
+}
+	•	401 Unauthorized si no se incluye el token:
+
+{
+  "message": "User ID claim not found."
+}
