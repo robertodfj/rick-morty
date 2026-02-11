@@ -93,92 +93,115 @@ namespace RickYMorty.service
             return $"Episode with ID {putEpisodeForSaleDTO.ItemId} is now for sale at price {putEpisodeForSaleDTO.Price}.";
         }
 
-        // Comporar un personaje o episodio
+        // Comprar un personaje o episodio
         public async Task<CharacterResponse> BuyCharacter(int buyerId, int characterId)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == buyerId);
-            var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == characterId && c.ForSale);
-            if (user == null)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                throw new NotFoundException("Buyer not found.");
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == buyerId);
+                var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == characterId && c.ForSale);
+                if (user == null)
+                {
+                    throw new NotFoundException("Buyer not found.");
+                }
+                if (character == null)
+                {
+                    throw new NotFoundException("Character not found or not for sale.");
+                }
+                if (user.Money < character.Price)
+                {
+                    throw new ConflictException("Buyer does not have enough money.");
+                }
+                if (character.OwnedByUserId == buyerId)
+                {
+                    throw new ConflictException("You cannot buy your own character.");
+                }
+
+                var seller = await _context.Users.FirstOrDefaultAsync(u => u.Id == character.OwnedByUserId);
+                if (seller != null)
+                {
+                    seller.Money += character.Price;
+                }
+
+                user.Money -= character.Price;
+                character.OwnedByUserId = buyerId;
+                character.ForSale = false;
+                character.Price = 0;
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return new CharacterResponse
+                {
+                    Id = character.Id,
+                    Name = character.Name,
+                    Status = character.Status,
+                    Species = character.Species,
+                    Gender = character.Gender,
+                    Price = character.Price,
+                    ForSale = character.ForSale
+                };
             }
-            if (character == null)
+            catch (System.Exception)
             {
-                throw new NotFoundException("Character not found or not for sale.");
-            }
-            if (user.Money < character.Price)
-            {
-                throw new ConflictException("Buyer does not have enough money.");
-            }
-            if (character.OwnedByUserId == buyerId)
-            {
-                throw new ConflictException("You cannot buy your own character.");
+                await transaction.RollbackAsync();
+                throw;
             }
 
-            var seller = await _context.Users.FirstOrDefaultAsync(u => u.Id == character.OwnedByUserId);
-            if (seller != null)            {
-                seller.Money += character.Price;
-            }
-
-            user.Money -= character.Price;
-            character.OwnedByUserId = buyerId;
-            character.ForSale = false;
-            character.Price = 0;
-            await _context.SaveChangesAsync();
-            return new CharacterResponse
-            {
-                Id = character.Id,
-                Name = character.Name,
-                Status = character.Status,
-                Species = character.Species,
-                Gender = character.Gender,
-                Price = character.Price,
-                ForSale = character.ForSale
-            };
         }
 
         public async Task<EpisodeResponse> BuyEpisode(int buyerId, int episodeId)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == buyerId);
-            var episode = await _context.Episodes.FirstOrDefaultAsync(e => e.Id == episodeId && e.ForSale);
-            if (user == null)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                throw new NotFoundException("Buyer not found.");
-            }
-            if (episode == null)
-            {
-                throw new NotFoundException("Episode not found or not for sale.");
-            }
-            if (user.Money < episode.Price)
-            {
-                throw new ConflictException("Buyer does not have enough money.");
-            }
-            if (episode.OwnedByUserId == buyerId)
-            {
-                throw new ConflictException("You cannot buy your own episode.");
-            }
-            var seller = await _context.Users.FirstOrDefaultAsync(u => u.Id == episode.OwnedByUserId);
-            if (seller != null)            {
-                seller.Money += episode.Price;
-            }
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == buyerId);
+                var episode = await _context.Episodes.FirstOrDefaultAsync(e => e.Id == episodeId && e.ForSale);
+                if (user == null)
+                {
+                    throw new NotFoundException("Buyer not found.");
+                }
+                if (episode == null)
+                {
+                    throw new NotFoundException("Episode not found or not for sale.");
+                }
+                if (user.Money < episode.Price)
+                {
+                    throw new ConflictException("Buyer does not have enough money.");
+                }
+                if (episode.OwnedByUserId == buyerId)
+                {
+                    throw new ConflictException("You cannot buy your own episode.");
+                }
+                var seller = await _context.Users.FirstOrDefaultAsync(u => u.Id == episode.OwnedByUserId);
+                if (seller != null)
+                {
+                    seller.Money += episode.Price;
+                }
 
-            user.Money -= episode.Price;
-            episode.OwnedByUserId = buyerId;
-            episode.ForSale = false;
-            episode.Price = 0;
-            await _context.SaveChangesAsync();
-            return new EpisodeResponse
+                user.Money -= episode.Price;
+                episode.OwnedByUserId = buyerId;
+                episode.ForSale = false;
+                episode.Price = 0;
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return new EpisodeResponse
+                {
+                    Id = episode.Id,
+                    Name = episode.Name,
+                    AirDate = episode.AirDate,
+                    Episode = episode.EpisodeCode,
+                    Characters = episode.Characters,
+                    Url = episode.Url,
+                    Created = episode.Created,
+                    ForSale = episode.ForSale,
+                    Price = episode.Price
+                };
+            }
+            catch (System.Exception)
             {
-                Id = episode.Id,
-                Name = episode.Name,
-                AirDate = episode.AirDate,
-                Episode = episode.EpisodeCode,
-                Characters = episode.Characters,
-                Url = episode.Url,
-                Created = episode.Created,
-                ForSale = episode.ForSale,
-                Price = episode.Price
-            };
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
     }
 }
