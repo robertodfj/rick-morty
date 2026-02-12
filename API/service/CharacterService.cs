@@ -30,7 +30,8 @@ namespace RickYMorty.service
             }
             if (existing != null)
             {
-                throw new ConflictException($"Character already owned by user {existing.OwnedByUserId}");
+                var owner = await _context.Users.FindAsync(existing.OwnedByUserId);
+                throw new ConflictException($"Character already owned by user {owner?.Username}");
             }
             if (!CaptureSuccess(user.TimesWorked ?? 0))
             {
@@ -45,7 +46,6 @@ namespace RickYMorty.service
 
             var character = new model.Character
             {
-                Id = response.Id,
                 Name = response.Name,
                 Status = response.Status,
                 Species = response.Species,
