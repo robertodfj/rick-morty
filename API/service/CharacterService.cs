@@ -38,10 +38,6 @@ namespace RickYMorty.service
             {
                 throw new NotFoundException("User not found");
             }
-            if (characterId <= 0)
-            {
-                throw new BadRequestException("Invalid character ID");
-            }
             if (!CaptureSuccess(user.TimesWorked ?? 0))
             {
                 throw new ConflictException("Capture failed. Keep working to increase your chances!");

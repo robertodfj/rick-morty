@@ -39,14 +39,6 @@ namespace RickYMorty.service
             {
                 throw new NotFoundException("User not found");
             }
-            if (episodeId <= 0)
-            {
-                throw new BadRequestException("Invalid episode ID");
-            }
-            if (existing != null)
-            {
-                throw new ConflictException($"Episode already owned by user {existing.OwnedByUserId}");
-            }
             if (!CaptureSuccess(user.TimesWorked ?? 0))
             {
                 throw new ConflictException("Capture failed. Keep working to increase your chances!");
