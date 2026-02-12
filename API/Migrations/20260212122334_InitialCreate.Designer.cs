@@ -12,8 +12,8 @@ using RickYMorty.data;
 namespace RickYMorty.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    [Migration("20260212095910_InitialSqlServer")]
-    partial class InitialSqlServer
+    [Migration("20260212122334_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
