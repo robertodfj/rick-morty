@@ -17,15 +17,29 @@ namespace RickYMorty.service
             _context = context;
         }
 
-        public async Task<EpisodeResponse> CaptureEpisode(int ownerId, GetEpisode getEpisode)
+        public async Task<EpisodeResponse> CaptureEpisode(int ownerId)
         {
             var user = await _context.Users.FindAsync(ownerId);
-            var existing = await _context.Episodes.FirstOrDefaultAsync(e => e.Id == getEpisode.Id);
+            int episodeId = Random.Shared.Next(1, 51); // Genera un ID aleatorio entre 1 y 51
+
+            int totalEpisodes = 51;
+            var capturedCount = await _context.Episodes.CountAsync(); 
+            if (capturedCount >= totalEpisodes) 
+            { 
+                throw new ConflictException("All episodes have been captured. Try again later!"); 
+            }
+            
+            var existing = await _context.Episodes.FirstOrDefaultAsync(e => e.Id == episodeId);
+            while (existing != null)
+            {
+                episodeId = Random.Shared.Next(1, 51);
+                existing = await _context.Episodes.FirstOrDefaultAsync(e => e.Id == episodeId);
+            }
             if (user == null)
             {
                 throw new NotFoundException("User not found");
             }
-            if (getEpisode.Id <= 0)
+            if (episodeId <= 0)
             {
                 throw new BadRequestException("Invalid episode ID");
             }
@@ -38,7 +52,7 @@ namespace RickYMorty.service
                 throw new ConflictException("Capture failed. Keep working to increase your chances!");
             }
 
-            var response = await _httpClient.GetFromJsonAsync<EpisodeResponse>($"https://rickandmortyapi.com/api/episode/{getEpisode.Id}");
+            var response = await _httpClient.GetFromJsonAsync<EpisodeResponse>($"https://rickandmortyapi.com/api/episode/{episodeId}");
             if (response == null)
             {
                 throw new NotFoundException("Episode not found");
@@ -46,7 +60,6 @@ namespace RickYMorty.service
 
             var episode = new Episode
             {
-                Id = response.Id,
                 Name = response.Name ?? "Unknown",
                 AirDate = string.IsNullOrEmpty(response.AirDate) ? DateTime.UtcNow.ToString("yyyy-MM-dd") : response.AirDate,
                 EpisodeCode = response.Episode ?? "Unknown",
