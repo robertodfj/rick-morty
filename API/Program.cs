@@ -12,7 +12,7 @@ builder.Services.AddControllers();
 
 // Registrar APP DBContext
 builder.Services.AddDbContext<AppDBContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
 builder.Services.AddScoped<AuthService>();
