@@ -16,29 +16,38 @@ namespace RickYMorty.service
             _context = context;
         }
 
-        public async Task<CharacterResponse> CaptureCharacter(GetCharacterDTO getCharacterDTO, int ownerId)
+        public async Task<CharacterResponse> CaptureCharacter(int ownerId)
         {
+            int characterId = Random.Shared.Next(1, 827); // Genera un ID aleatorio entre 1 y 827
             var user = await _context.Users.FindAsync(ownerId);
-            var existing = await _context.Characters.FirstOrDefaultAsync(c => c.Id == getCharacterDTO.Id);
+            var existing = await _context.Characters.FirstOrDefaultAsync(c => c.Id == characterId);
+
+            int totalCharacters = 826; // Total de personajes disponibles en la API
+            var capturedCount = await _context.Characters.CountAsync(); 
+            if (capturedCount >= totalCharacters) 
+            { 
+                throw new ConflictException("All characters have been captured. Try again later!"); 
+            }
+
+            // Hacer que genere un numero que no este ya capturado
+            while (existing != null) 
+            { 
+                characterId = Random.Shared.Next(1, 827); existing = await _context.Characters.FirstOrDefaultAsync(c => c.Id == characterId); 
+            }
             if (user == null)
             {
                 throw new NotFoundException("User not found");
             }
-            if (getCharacterDTO.Id <= 0)
+            if (characterId <= 0)
             {
                 throw new BadRequestException("Invalid character ID");
-            }
-            if (existing != null)
-            {
-                var owner = await _context.Users.FindAsync(existing.OwnedByUserId);
-                throw new ConflictException($"Character already owned by user {owner?.Username}");
             }
             if (!CaptureSuccess(user.TimesWorked ?? 0))
             {
                 throw new ConflictException("Capture failed. Keep working to increase your chances!");
             }
 
-            var response = await _httpClient.GetFromJsonAsync<CharacterResponse>($"https://rickandmortyapi.com/api/character/{getCharacterDTO.Id}");
+            var response = await _httpClient.GetFromJsonAsync<CharacterResponse>($"https://rickandmortyapi.com/api/character/{characterId}");
             if (response == null)
             {
                 throw new NotFoundException("Character not found");
