@@ -1,14 +1,25 @@
+# Compilación de .NET
 [Bb]in/
 [Oo]bj/
-
-bin/
-obj/
 publish/
 
 # SQLite
 *.db
 *.db-shm
 *.db-wal
+DB/
 
-# Configuración local
-appsettings.Development.json
+# Configuración local / secretos
+API/appsettings.json
+token/*.cs
+
+# IDE
+.vs/
+.idea/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
