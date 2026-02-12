@@ -27,11 +27,11 @@ namespace RickYMorty.controller
         // Capturar un episodio
         [HttpPost("capture")]
         [Authorize]
-        public async Task<IActionResult> CaptureEpisode([FromBody] GetEpisode getEpisodeDTO)
+        public async Task<IActionResult> CaptureEpisode()
         {
             var ownerId = GetUserID();
-            var episodeResponse = await episodeService.CaptureEpisode(ownerId, getEpisodeDTO);
-            _logger.LogInformation("Episode captured successfully by user {UserId} with episode ID {EpisodeId}", ownerId, getEpisodeDTO.Id);
+            var episodeResponse = await episodeService.CaptureEpisode(ownerId);
+            _logger.LogInformation("Episode captured successfully by user {UserId} with episode ID {EpisodeId}", ownerId, episodeResponse.Id);
             return Ok(episodeResponse);
         }
 

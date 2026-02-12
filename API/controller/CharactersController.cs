@@ -27,11 +27,11 @@ namespace RickYMorty.controller
         // Capturar un personaje
         [HttpPost("capture")]
         [Authorize]
-        public async Task<IActionResult> CaptureCharacter([FromBody] GetCharacterDTO getCharacterDTO)
+        public async Task<IActionResult> CaptureCharacter()
         {
             var ownerId = GetUserID();
-            var characterResponse = await characterService.CaptureCharacter(getCharacterDTO, ownerId);
-            _logger.LogInformation("Character captured successfully by user {UserId} with character ID {CharacterId}", ownerId, getCharacterDTO.Id);
+            var characterResponse = await characterService.CaptureCharacter(ownerId);
+            _logger.LogInformation("Character captured successfully by user {UserId} with character ID {CharacterId}", ownerId, characterResponse.Id);
             return Ok(characterResponse);
         }
 
