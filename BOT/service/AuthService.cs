@@ -1,3 +1,6 @@
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
 using Bot.model.request;
 
 namespace Bot.service
