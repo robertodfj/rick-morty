@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Threading;
 using Telegram.Bot;
 using Bot.handler;
 using Bot.service;
 using Bot.commands;
 using Bot.config;
+using Bot.token;
 
 class Program
 {
@@ -15,9 +16,14 @@ class Program
 
         var httpClient = new HttpClient();
         var authService = new AuthService(httpClient, apiSettings.URL);
+        var traderService = new TraderService(httpClient, apiSettings.URL);
+
         var registerCommand = new RegisterCommand(authService);
         var loginCommand = new LoginCommand(authService);
-        var handler = new BotUpdateHandler(new TelegramBotClient(botSettings.Token), registerCommand, loginCommand, authService);
+        var captureCharacterCommand = new CaptureCharacterCommand(traderService);
+
+        var extractToken = new ExtractToken();
+        var handler = new BotUpdateHandler(new TelegramBotClient(botSettings.Token), registerCommand, loginCommand, captureCharacterCommand, extractToken, new Dictionary<long, string>());
 
         var botClient = new TelegramBotClient(botSettings.Token);
         using var cts = new CancellationTokenSource();

@@ -6,6 +6,13 @@ using Telegram.Bot.Types.Enums;
 using Bot.commands;
 using Bot.service;
 using Bot.model.request;
+using Bot.token;
+
+//TAREAS RESTANTES
+// Hacer bonito la respuesta para que no quede asi: Login failed: {"message":"Invalid username or password"}
+// Guardar el token en memoria para usarlo en los siguientes comandos (my-info, user-info, edit-user) y asi no tener que loguear cada vez
+// Loguear automaticamente cada hora para renovar el token (si es que expira a la hora, sino ajustar el tiempo)
+
 
 namespace Bot.handler
 {
@@ -14,14 +21,29 @@ namespace Bot.handler
         private readonly ITelegramBotClient _botClient;
         private readonly RegisterCommand _registerCommand;
         private readonly LoginCommand _loginCommand;
-        private readonly AuthService _authService;
+        private readonly CaptureCharacterCommand _captureCharacterCommand;
+        private readonly ExtractToken _extractToken;
+        private readonly Dictionary<long, string> _userTokens = new();
 
-        public BotUpdateHandler(ITelegramBotClient botClient, RegisterCommand registerCommand, LoginCommand loginCommand, AuthService authService)
+        public BotUpdateHandler(ITelegramBotClient botClient, RegisterCommand registerCommand, LoginCommand loginCommand, CaptureCharacterCommand captureCharacterCommand, ExtractToken extractToken, Dictionary<long, string> userTokens)
         {
             _botClient = botClient;
             _registerCommand = registerCommand;
             _loginCommand = loginCommand;
-            _authService = authService;
+            _captureCharacterCommand = captureCharacterCommand;
+            _extractToken = extractToken;
+            _userTokens = userTokens;
+        }
+
+        // Usar y guardar tokens
+        public void SaveUserToken(long userId, string token)
+        {
+            _userTokens[userId] = token;
+        }
+
+        public string GetUserToken(long userId)
+        {
+            return _userTokens.TryGetValue(userId, out var token) ? token : string.Empty;
         }
 
         public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -121,9 +143,12 @@ namespace Bot.handler
                     };
 
                     var loginResult = await _loginCommand.ExecuteAsync(loginRequest);
-                    
+
                     if (loginResult.Success)
                     {
+                        // Guardamos el token despues de extraerlo de la respuesta del login
+                        SaveUserToken(chatId, _extractToken.GetTokenFromResponse(loginResult.Message));
+
                         await botClient.SendMessage(
                             chatId: chatId,
                             text: $"Login successful! Welcome back, {username}!",
@@ -148,7 +173,41 @@ namespace Bot.handler
                     );
                 }
             }
-
+            if (messageText == "/capture-character")
+            {
+                var userToken = GetUserToken(chatId);
+                await botClient.SendMessage(
+                    chatId: chatId,
+                    cancellationToken: cancellationToken
+                );
+                if (string.IsNullOrEmpty(userToken))
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: "You must be logged in to capture a character.",
+                        cancellationToken: cancellationToken
+                    );
+                    return;
+                }
+                try
+                {
+                    var captureCharacter = await _captureCharacterCommand.ExecuteAsync(userToken);
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: captureCharacter.Message,
+                        cancellationToken: cancellationToken
+                    );
+                }
+                catch (Exception ex)
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: $"Error capturing character: {ex.Message}",
+                        cancellationToken: cancellationToken
+                    );
+                    throw;
+                }
+            }
         }
     }
 }
