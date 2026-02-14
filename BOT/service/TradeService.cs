@@ -70,5 +70,14 @@ namespace Bot.service
             var content = await response.Content.ReadAsStringAsync();
             return content;
         }
+
+        public async Task<string> BuyEpisode(int episodeId, string token)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{_apiUrl.TrimEnd('/')}/episodes/buy/{episodeId}");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var response = await _httpClient.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+            return content;
+        }
     }
 }
