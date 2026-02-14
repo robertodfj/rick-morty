@@ -1,22 +1,20 @@
-using System.Threading.Tasks;
 using Bot.service;
-using Bot.model.request;
 
 namespace Bot.commands
 {
-    public class CaptureCharacterCommand
+    public class CaptureEpisodeCommand
     {
         private readonly TradeService _tradeService;
 
-        public CaptureCharacterCommand(TradeService tradeService)
+        public CaptureEpisodeCommand(TradeService tradeService)
         {
             _tradeService = tradeService;
         }
 
         public async Task<(bool Success, string Message)> ExecuteAsync(string token)
         {
-            var character = await _tradeService.GetRandomCharacter(token);
-            return (true, character);
+            var episode = await _tradeService.GetRandomEpisode(token);
+            return (true, episode);
         }
     }
 }

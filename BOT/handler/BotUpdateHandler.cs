@@ -22,15 +22,18 @@ namespace Bot.handler
         private readonly RegisterCommand _registerCommand;
         private readonly LoginCommand _loginCommand;
         private readonly CaptureCharacterCommand _captureCharacterCommand;
+        private readonly CaptureEpisodeCommand _captureEpisodeCommand;
         private readonly ExtractToken _extractToken;
         private readonly Dictionary<long, string> _userTokens = new();
 
-        public BotUpdateHandler(ITelegramBotClient botClient, RegisterCommand registerCommand, LoginCommand loginCommand, CaptureCharacterCommand captureCharacterCommand, ExtractToken extractToken, Dictionary<long, string> userTokens)
+        public BotUpdateHandler(ITelegramBotClient botClient, RegisterCommand registerCommand, LoginCommand loginCommand, CaptureCharacterCommand captureCharacterCommand, 
+                                CaptureEpisodeCommand captureEpisodeCommand, ExtractToken extractToken, Dictionary<long, string> userTokens)
         {
             _botClient = botClient;
             _registerCommand = registerCommand;
             _loginCommand = loginCommand;
             _captureCharacterCommand = captureCharacterCommand;
+            _captureEpisodeCommand = captureEpisodeCommand;
             _extractToken = extractToken;
             _userTokens = userTokens;
         }
@@ -74,9 +77,9 @@ namespace Bot.handler
                           "/help - Show this help message" + Environment.NewLine +
                           "/register - Register a new user" + Environment.NewLine +
                           "/login - Login to your account" + Environment.NewLine +
-                          "/my-info - Show your user information" + Environment.NewLine +
-                          "/user-info - Show the user information" + Environment.NewLine +
-                          "/edit-user - Edit your user information" + Environment.NewLine +
+                          "/myInfo - Show your user information" + Environment.NewLine +
+                          "/userInfo - Show the user information" + Environment.NewLine +
+                          "/editUser - Edit your user information" + Environment.NewLine +
                           Environment.NewLine +
                             "REMINDER: This bot is for demonstration purposes only. Do not share sensitive information.",
                     cancellationToken: cancellationToken
@@ -173,13 +176,9 @@ namespace Bot.handler
                     );
                 }
             }
-            if (messageText == "/capture-character")
+            if (messageText == "/captureCharacter")
             {
                 var userToken = GetUserToken(chatId);
-                await botClient.SendMessage(
-                    chatId: chatId,
-                    cancellationToken: cancellationToken
-                );
                 if (string.IsNullOrEmpty(userToken))
                 {
                     await botClient.SendMessage(
@@ -189,6 +188,12 @@ namespace Bot.handler
                     );
                     return;
                 }
+
+                await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "Capturing character...",
+                    cancellationToken: cancellationToken
+                );
                 try
                 {
                     var captureCharacter = await _captureCharacterCommand.ExecuteAsync(userToken);
@@ -203,6 +208,43 @@ namespace Bot.handler
                     await botClient.SendMessage(
                         chatId: chatId,
                         text: $"Error capturing character: {ex.Message}",
+                        cancellationToken: cancellationToken
+                    );
+                    throw;
+                }
+            }
+            if (messageText == "/captureEpisode")
+            {
+                var userToken = GetUserToken(chatId);
+                if (string.IsNullOrEmpty(userToken))
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: "You must be logged in to capture an episode.",
+                        cancellationToken: cancellationToken
+                    );
+                    return;
+                }
+
+                await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "Capturing episode...",
+                    cancellationToken: cancellationToken
+                );
+                try
+                {
+                    var captureEpisode = await _captureEpisodeCommand.ExecuteAsync(userToken);
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: captureEpisode.Message,
+                        cancellationToken: cancellationToken
+                    );
+                }
+                catch (Exception ex)
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: $"Error capturing episode: {ex.Message}",
                         cancellationToken: cancellationToken
                     );
                     throw;
