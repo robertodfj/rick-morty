@@ -13,6 +13,8 @@ DB/
 API/appsettings.json
 token/*.cs
 
+BOT/config
+
 # IDE
 .vs/
 .idea/
