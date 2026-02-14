@@ -1,3 +1,6 @@
+using Bot.model.request;
+using System.Net.Http.Json;
+
 namespace Bot.service
 {
     public class TradeService
@@ -29,5 +32,30 @@ namespace Bot.service
             var content = await response.Content.ReadAsStringAsync();
             return content;
         }
+
+        public async Task<string> PutCharacterForSale(ItemForSaleRequest itemForSaleRequest, string token)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{_apiUrl.TrimEnd('/')}/characters/put-for-sale")
+            {
+                Content= JsonContent.Create(itemForSaleRequest)
+            };
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var response = await _httpClient.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+            return content;
+        }
+
+        public async Task<string> PutEpisodeForSale(ItemForSaleRequest itemForSaleRequest, string token)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{_apiUrl.TrimEnd('/')}/episodes/put-for-sale")
+            {
+                Content= JsonContent.Create(itemForSaleRequest)
+            };
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var response = await _httpClient.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+            return content;
+        }
+        
     }
 }

@@ -19,21 +19,33 @@ namespace Bot.service
 
         public async Task<(bool Success, string Message)> Register(RegisterRequest registerRequest)
         {
-            var response = await _httpClient.PostAsJsonAsync($"{_apiUrl.TrimEnd('/')}/auth/register", registerRequest);
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{_apiUrl.TrimEnd('/')}/auth/register")
+            {
+                Content = JsonContent.Create(registerRequest)
+            };
+            var response = await _httpClient.SendAsync(request);
             var content = await response.Content.ReadAsStringAsync();
             return (response.IsSuccessStatusCode, content);
         }
 
         public async Task<(bool Success, string Message)> RegisterAdmin(RegisterRequest registerRequest)
         {
-            var response = await _httpClient.PostAsJsonAsync($"{_apiUrl.TrimEnd('/')}/auth/register-admin", registerRequest);
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{_apiUrl.TrimEnd('/')}/auth/register-admin")
+            {
+                Content = JsonContent.Create(registerRequest)
+            };
+            var response = await _httpClient.SendAsync(request);
             var content = await response.Content.ReadAsStringAsync();
             return (response.IsSuccessStatusCode, content);
         }
 
         public async Task<(bool Success, string Message)> Login(LoginRequest loginRequest)
         {
-            var response = await _httpClient.PostAsJsonAsync($"{_apiUrl.TrimEnd('/')}/auth/login", loginRequest);
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{_apiUrl.TrimEnd('/')}/auth/login")
+            {
+                Content = JsonContent.Create(loginRequest)
+            };
+            var response = await _httpClient.SendAsync(request);
             var content = await response.Content.ReadAsStringAsync();
             return (response.IsSuccessStatusCode, content);
         }

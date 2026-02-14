@@ -10,7 +10,6 @@ using Bot.token;
 
 //TAREAS RESTANTES
 // Hacer bonito la respuesta para que no quede asi: Login failed: {"message":"Invalid username or password"}
-// Guardar el token en memoria para usarlo en los siguientes comandos (my-info, user-info, edit-user) y asi no tener que loguear cada vez
 // Loguear automaticamente cada hora para renovar el token (si es que expira a la hora, sino ajustar el tiempo)
 
 
@@ -23,17 +22,22 @@ namespace Bot.handler
         private readonly LoginCommand _loginCommand;
         private readonly CaptureCharacterCommand _captureCharacterCommand;
         private readonly CaptureEpisodeCommand _captureEpisodeCommand;
+        private readonly PutCharacterForSaleCommand _sellCharacterCommand;
+        private readonly PutEpisodeForSaleCommand _sellEpisodeCommand;
         private readonly ExtractToken _extractToken;
         private readonly Dictionary<long, string> _userTokens = new();
 
-        public BotUpdateHandler(ITelegramBotClient botClient, RegisterCommand registerCommand, LoginCommand loginCommand, CaptureCharacterCommand captureCharacterCommand, 
-                                CaptureEpisodeCommand captureEpisodeCommand, ExtractToken extractToken, Dictionary<long, string> userTokens)
+        public BotUpdateHandler(ITelegramBotClient botClient, RegisterCommand registerCommand, LoginCommand loginCommand, CaptureCharacterCommand captureCharacterCommand,
+                                CaptureEpisodeCommand captureEpisodeCommand, PutCharacterForSaleCommand sellCharacterCommand, PutEpisodeForSaleCommand sellEpisodeCommand,
+                                ExtractToken extractToken, Dictionary<long, string> userTokens)
         {
             _botClient = botClient;
             _registerCommand = registerCommand;
             _loginCommand = loginCommand;
             _captureCharacterCommand = captureCharacterCommand;
             _captureEpisodeCommand = captureEpisodeCommand;
+            _sellCharacterCommand = sellCharacterCommand;
+            _sellEpisodeCommand = sellEpisodeCommand;
             _extractToken = extractToken;
             _userTokens = userTokens;
         }
@@ -47,6 +51,25 @@ namespace Bot.handler
         public string GetUserToken(long userId)
         {
             return _userTokens.TryGetValue(userId, out var token) ? token : string.Empty;
+        }
+
+        // Verificar el token
+        private async Task<string?> VerifyUserToken(long chatId, ITelegramBotClient botClient, CancellationToken cancellationToken)
+        {
+            var userToken = GetUserToken(chatId);
+
+            if (string.IsNullOrEmpty(userToken))
+            {
+                await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "🚨⚠️ You must be logged in to perform this action.",
+                    cancellationToken: cancellationToken
+                );
+
+                return null;
+            }
+
+            return userToken;
         }
 
         public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -178,16 +201,8 @@ namespace Bot.handler
             }
             if (messageText == "/captureCharacter")
             {
-                var userToken = GetUserToken(chatId);
-                if (string.IsNullOrEmpty(userToken))
-                {
-                    await botClient.SendMessage(
-                        chatId: chatId,
-                        text: "You must be logged in to capture a character.",
-                        cancellationToken: cancellationToken
-                    );
-                    return;
-                }
+                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
+                if (string.IsNullOrEmpty(userToken)) return;
 
                 await botClient.SendMessage(
                     chatId: chatId,
@@ -210,21 +225,12 @@ namespace Bot.handler
                         text: $"Error capturing character: {ex.Message}",
                         cancellationToken: cancellationToken
                     );
-                    throw;
                 }
             }
             if (messageText == "/captureEpisode")
             {
-                var userToken = GetUserToken(chatId);
-                if (string.IsNullOrEmpty(userToken))
-                {
-                    await botClient.SendMessage(
-                        chatId: chatId,
-                        text: "You must be logged in to capture an episode.",
-                        cancellationToken: cancellationToken
-                    );
-                    return;
-                }
+                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
+                if (string.IsNullOrEmpty(userToken)) return;
 
                 await botClient.SendMessage(
                     chatId: chatId,
@@ -244,10 +250,95 @@ namespace Bot.handler
                 {
                     await botClient.SendMessage(
                         chatId: chatId,
-                        text: $"Error capturing episode: {ex.Message}",
+                        text: $"🚨 Error capturing episode: {ex.Message}",
                         cancellationToken: cancellationToken
                     );
-                    throw;
+                }
+            }
+            if (messageText.StartsWith("/sellCharacter"))
+            {
+                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
+                if (string.IsNullOrEmpty(userToken)) return;
+
+                var parts = messageText.Split(' ');
+                if (parts.Length != 3)
+                {
+                    await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "🚨 ERROR: Usage: /sellCharacter <itemID> <price> Example: /sellCharacter 1 100",
+                    cancellationToken: cancellationToken
+                );
+                }
+
+                await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "Putting the character for sale... 🤑...",
+                    cancellationToken: cancellationToken
+                );
+                try
+                {
+                    var itemForSaleRequest = new ItemForSaleRequest
+                    {
+                        Price = int.Parse(parts[2]), 
+                        ItemID = int.Parse(parts[1])
+                    };
+                    var sellCharacter = await _sellCharacterCommand.ExecuteAsync(itemForSaleRequest, userToken); 
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: sellCharacter.Message,
+                        cancellationToken: cancellationToken
+                    );
+                }
+                catch (Exception ex)
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: $"🚨 Error putting the character for sale: {ex.Message}",
+                        cancellationToken: cancellationToken
+                    );
+                }
+            }
+            if (messageText.StartsWith("/sellEpisode"))
+            {
+                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
+                if (string.IsNullOrEmpty(userToken)) return;
+
+                var parts = messageText.Split(' ');
+                if (parts.Length != 3)
+                {
+                    await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "🚨 ERROR: Usage: /sellEpisode <itemID> <price> Example: /sellEpisode 1 100",
+                    cancellationToken: cancellationToken
+                );
+                }
+
+                await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "Putting the episode for sale... 🤑",
+                    cancellationToken: cancellationToken
+                );
+                try
+                {
+                    var itemForSaleRequest = new ItemForSaleRequest
+                    {
+                        Price = int.Parse(parts[2]), 
+                        ItemID = int.Parse(parts[1])
+                    };
+                    var sellEpisode = await _sellEpisodeCommand.ExecuteAsync(itemForSaleRequest, userToken); 
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: sellEpisode.Message,
+                        cancellationToken: cancellationToken
+                    );
+                }
+                catch (Exception ex)
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: $"🚨 Error putting the episode for sale: {ex.Message}",
+                        cancellationToken: cancellationToken
+                    );
                 }
             }
         }
