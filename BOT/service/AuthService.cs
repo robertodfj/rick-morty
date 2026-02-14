@@ -31,11 +31,11 @@ namespace Bot.service
             return (response.IsSuccessStatusCode, content);
         }
 
-        public async Task<string> Login(LoginRequest loginRequest)
+        public async Task<(bool Success, string Message)> Login(LoginRequest loginRequest)
         {
             var response = await _httpClient.PostAsJsonAsync($"{_apiUrl.TrimEnd('/')}/auth/login", loginRequest);
             var content = await response.Content.ReadAsStringAsync();
-            return content;
+            return (response.IsSuccessStatusCode, content);
         }
     }
 }

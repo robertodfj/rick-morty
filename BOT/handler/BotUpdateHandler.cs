@@ -121,12 +121,23 @@ namespace Bot.handler
                     };
 
                     var loginResult = await _loginCommand.ExecuteAsync(loginRequest);
-                    await botClient.SendMessage(
-                        chatId: chatId,
-            // Revisar aqui siempre es succesfull
-                        text: !string.IsNullOrEmpty(loginResult) ? $"Login successful! Welcome back, {username}!" : "Login failed. Please check your credentials.",
-                        cancellationToken: cancellationToken
-                    );
+                    
+                    if (loginResult.Success)
+                    {
+                        await botClient.SendMessage(
+                            chatId: chatId,
+                            text: $"Login successful! Welcome back, {username}!",
+                            cancellationToken: cancellationToken
+                        );
+                    }
+                    else
+                    {
+                        await botClient.SendMessage(
+                            chatId: chatId,
+                            text: $"Login failed: {loginResult.Message}",
+                            cancellationToken: cancellationToken
+                        );
+                    }
                 }
                 catch (System.Exception ex)
                 {

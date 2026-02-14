@@ -13,7 +13,7 @@ namespace Bot.commands
             _authService = authService;
         }
 
-        public async Task<string> ExecuteAsync(LoginRequest loginRequest)
+        public async Task<(bool Success, string Message)> ExecuteAsync(LoginRequest loginRequest)
         {
             return await _authService.Login(loginRequest);
         }
