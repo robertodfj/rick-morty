@@ -76,9 +76,9 @@ namespace RickYMorty.controller
         }
 
         // Comprar un personaje
-        [HttpPost("buy")]
+        [HttpPost("buy/{characterId}")]
         [Authorize]
-        public async Task<IActionResult> BuyCharacter([FromBody] int characterId)
+        public async Task<IActionResult> BuyCharacter(int characterId)
         {
             var buyerId = GetUserID();
             var result = await tradeService.BuyCharacter(buyerId, characterId);

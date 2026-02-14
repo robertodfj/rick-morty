@@ -5,7 +5,7 @@ namespace Bot.service
 {
     public class TradeService
     {
-       
+
         private readonly HttpClient _httpClient;
         private readonly string _apiUrl;
 
@@ -37,7 +37,7 @@ namespace Bot.service
         {
             var request = new HttpRequestMessage(HttpMethod.Post, $"{_apiUrl.TrimEnd('/')}/characters/put-for-sale")
             {
-                Content= JsonContent.Create(itemForSaleRequest)
+                Content = JsonContent.Create(itemForSaleRequest)
             };
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             var response = await _httpClient.SendAsync(request);
@@ -49,13 +49,12 @@ namespace Bot.service
         {
             var request = new HttpRequestMessage(HttpMethod.Post, $"{_apiUrl.TrimEnd('/')}/episodes/put-for-sale")
             {
-                Content= JsonContent.Create(itemForSaleRequest)
+                Content = JsonContent.Create(itemForSaleRequest)
             };
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             var response = await _httpClient.SendAsync(request);
             var content = await response.Content.ReadAsStringAsync();
             return content;
         }
-        
     }
 }

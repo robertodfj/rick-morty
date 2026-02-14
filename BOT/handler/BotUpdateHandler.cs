@@ -11,6 +11,8 @@ using Bot.token;
 //TAREAS RESTANTES
 // Hacer bonito la respuesta para que no quede asi: Login failed: {"message":"Invalid username or password"}
 // Loguear automaticamente cada hora para renovar el token (si es que expira a la hora, sino ajustar el tiempo)
+// Hacer que se pueda editar el username
+// Hacer que se pueda quitar el personaje de en venta
 
 
 namespace Bot.handler
@@ -24,11 +26,14 @@ namespace Bot.handler
         private readonly CaptureEpisodeCommand _captureEpisodeCommand;
         private readonly PutCharacterForSaleCommand _sellCharacterCommand;
         private readonly PutEpisodeForSaleCommand _sellEpisodeCommand;
+        private readonly BuyCharacterCommand _buyCharacterCommand;
+        private readonly BuyEpisodeCommand _buyEpisodeCommand;
         private readonly ExtractToken _extractToken;
         private readonly Dictionary<long, string> _userTokens = new();
 
         public BotUpdateHandler(ITelegramBotClient botClient, RegisterCommand registerCommand, LoginCommand loginCommand, CaptureCharacterCommand captureCharacterCommand,
                                 CaptureEpisodeCommand captureEpisodeCommand, PutCharacterForSaleCommand sellCharacterCommand, PutEpisodeForSaleCommand sellEpisodeCommand,
+                                BuyCharacterCommand buyCharacterCommand, BuyEpisodeCommand buyEpisodeCommand,
                                 ExtractToken extractToken, Dictionary<long, string> userTokens)
         {
             _botClient = botClient;
@@ -38,6 +43,8 @@ namespace Bot.handler
             _captureEpisodeCommand = captureEpisodeCommand;
             _sellCharacterCommand = sellCharacterCommand;
             _sellEpisodeCommand = sellEpisodeCommand;
+            _buyCharacterCommand = buyCharacterCommand;
+            _buyEpisodeCommand = buyEpisodeCommand;
             _extractToken = extractToken;
             _userTokens = userTokens;
         }
@@ -279,10 +286,10 @@ namespace Bot.handler
                 {
                     var itemForSaleRequest = new ItemForSaleRequest
                     {
-                        Price = int.Parse(parts[2]), 
+                        Price = int.Parse(parts[2]),
                         ItemID = int.Parse(parts[1])
                     };
-                    var sellCharacter = await _sellCharacterCommand.ExecuteAsync(itemForSaleRequest, userToken); 
+                    var sellCharacter = await _sellCharacterCommand.ExecuteAsync(itemForSaleRequest, userToken);
                     await botClient.SendMessage(
                         chatId: chatId,
                         text: sellCharacter.Message,
@@ -322,10 +329,10 @@ namespace Bot.handler
                 {
                     var itemForSaleRequest = new ItemForSaleRequest
                     {
-                        Price = int.Parse(parts[2]), 
+                        Price = int.Parse(parts[2]),
                         ItemID = int.Parse(parts[1])
                     };
-                    var sellEpisode = await _sellEpisodeCommand.ExecuteAsync(itemForSaleRequest, userToken); 
+                    var sellEpisode = await _sellEpisodeCommand.ExecuteAsync(itemForSaleRequest, userToken);
                     await botClient.SendMessage(
                         chatId: chatId,
                         text: sellEpisode.Message,

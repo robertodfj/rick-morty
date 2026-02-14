@@ -24,9 +24,11 @@ class Program
         var captureEpisodeCommand = new CaptureEpisodeCommand(tradeService);
         var sellCharacterCommand = new PutCharacterForSaleCommand(tradeService);
         var sellEpisodeCommand = new PutEpisodeForSaleCommand(tradeService);
+        var buyCharacterCommand = new BuyCharacterCommand(tradeService);
+        var buyEpisodeCommand = new BuyEpisodeCommand(tradeService);
 
         var extractToken = new ExtractToken();
-        var handler = new BotUpdateHandler(new TelegramBotClient(botSettings.Token), registerCommand, loginCommand, captureCharacterCommand, captureEpisodeCommand, sellCharacterCommand, sellEpisodeCommand, extractToken, new Dictionary<long, string>());
+        var handler = new BotUpdateHandler(new TelegramBotClient(botSettings.Token), registerCommand, loginCommand, captureCharacterCommand, captureEpisodeCommand, sellCharacterCommand, sellEpisodeCommand, buyCharacterCommand, buyEpisodeCommand, extractToken, new Dictionary<long, string>());
 
         var botClient = new TelegramBotClient(botSettings.Token);
         using var cts = new CancellationTokenSource();
