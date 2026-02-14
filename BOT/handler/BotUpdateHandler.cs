@@ -13,7 +13,19 @@ using Bot.token;
 // Loguear automaticamente cada hora para renovar el token (si es que expira a la hora, sino ajustar el tiempo)
 // Hacer que se pueda editar el username
 // Hacer que se pueda quitar el personaje de en venta
+// Pruebas completas de la api consumida desde telegram no postman
+/*
+COMANDOS A IMPLEMENTAR
+my-characters
+my-episodes
+characters/usuarioEnemigo
+episodes/usuarioEnemigo
+characters/for-sale ()tienda completa
+user/work
+user/edit
 
+my-info
+*/
 
 namespace Bot.handler
 {
@@ -395,6 +407,57 @@ namespace Bot.handler
                     await botClient.SendMessage(
                         chatId: chatId,
                         text: $"🚨 Error buying the character: {ex.Message}",
+                        cancellationToken: cancellationToken
+                    );
+                }
+            }
+            if (messageText.StartsWith("/buyEpisode"))
+            {
+                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
+                if (string.IsNullOrEmpty(userToken)) return;
+
+                var parts = messageText.Split(' ');
+                if (parts.Length != 2)
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: "🚨 ERROR: Usage: /buyEpisode <itemId> Example: /buyEpisode 1",
+                        cancellationToken: cancellationToken
+                    );
+                    return;
+                }
+
+                if (!int.TryParse(parts[1], out int itemId))
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: "🚨 ERROR: The item ID must be a valid integer.",
+                        cancellationToken: cancellationToken
+                    );
+                    return;
+                }
+
+                await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "Buying the episode... 🛒",
+                    cancellationToken: cancellationToken
+                );
+
+                try
+                {
+                    // Pasamos directamente el int
+                    var buyEpisode = await _buyEpisodeCommand.ExecuteAsync(itemId, userToken);
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: buyEpisode.Message,
+                        cancellationToken: cancellationToken
+                    );
+                }
+                catch (Exception ex)
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: $"🚨 Error buying the episode: {ex.Message}",
                         cancellationToken: cancellationToken
                     );
                 }
