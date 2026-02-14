@@ -13,7 +13,7 @@ namespace Bot.commands
             _authService = authService;
         }
 
-        public async Task<string> Execute(RegisterRequest registerRequest)
+        public async Task<(bool Success, string Message)> ExecuteAsync(RegisterRequest registerRequest)
         {
             return await _authService.Register(registerRequest);
         }

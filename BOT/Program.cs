@@ -16,7 +16,8 @@ class Program
         var httpClient = new HttpClient();
         var authService = new AuthService(httpClient, apiSettings.URL);
         var registerCommand = new RegisterCommand(authService);
-        var handler = new BotUpdateHandler(new TelegramBotClient(botSettings.Token), registerCommand);
+        var loginCommand = new LoginCommand(authService);
+        var handler = new BotUpdateHandler(new TelegramBotClient(botSettings.Token), registerCommand, loginCommand, authService);
 
         var botClient = new TelegramBotClient(botSettings.Token);
         using var cts = new CancellationTokenSource();

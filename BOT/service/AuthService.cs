@@ -1,5 +1,6 @@
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using Bot.model.request;
 
@@ -16,25 +17,25 @@ namespace Bot.service
             _apiUrl = apiUrl;
         }
 
-        public async Task<string> Register(RegisterRequest registerRequest)
+        public async Task<(bool Success, string Message)> Register(RegisterRequest registerRequest)
         {
             var response = await _httpClient.PostAsJsonAsync($"{_apiUrl.TrimEnd('/')}/auth/register", registerRequest);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync();
+            return (response.IsSuccessStatusCode, content);
         }
 
-        public async Task<string> RegisterAdmin(RegisterRequest registerRequest)
+        public async Task<(bool Success, string Message)> RegisterAdmin(RegisterRequest registerRequest)
         {
             var response = await _httpClient.PostAsJsonAsync($"{_apiUrl.TrimEnd('/')}/auth/register-admin", registerRequest);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync();
+            return (response.IsSuccessStatusCode, content);
         }
 
         public async Task<string> Login(LoginRequest loginRequest)
         {
             var response = await _httpClient.PostAsJsonAsync($"{_apiUrl.TrimEnd('/')}/auth/login", loginRequest);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync();
+            return content;
         }
     }
 }
