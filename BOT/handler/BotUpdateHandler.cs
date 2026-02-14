@@ -348,6 +348,57 @@ namespace Bot.handler
                     );
                 }
             }
+            if (messageText.StartsWith("/buyCharacter"))
+            {
+                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
+                if (string.IsNullOrEmpty(userToken)) return;
+
+                var parts = messageText.Split(' ');
+                if (parts.Length != 2)
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: "🚨 ERROR: Usage: /buyCharacter <itemId> Example: /buyCharacter 1",
+                        cancellationToken: cancellationToken
+                    );
+                    return;
+                }
+
+                if (!int.TryParse(parts[1], out int itemId))
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: "🚨 ERROR: The item ID must be a valid integer.",
+                        cancellationToken: cancellationToken
+                    );
+                    return;
+                }
+
+                await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "Buying the character... 🛒",
+                    cancellationToken: cancellationToken
+                );
+
+                try
+                {
+                    // Pasamos directamente el int
+                    var buyCharacter = await _buyCharacterCommand.ExecuteAsync(itemId, userToken);
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: buyCharacter.Message,
+                        cancellationToken: cancellationToken
+                    );
+                }
+                catch (Exception ex)
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: $"🚨 Error buying the character: {ex.Message}",
+                        cancellationToken: cancellationToken
+                    );
+                }
+            }
         }
     }
 }
