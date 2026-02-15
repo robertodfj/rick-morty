@@ -3,16 +3,19 @@ using RickYMorty.dto;
 using RickYMorty.model;
 using Microsoft.EntityFrameworkCore;
 using RickYMorty.middleware;
+using RickYMorty.token;
 
 namespace RickYMorty.service
 {
     public class UserService
     {
         private readonly AppDBContext _context;
+        private readonly IConfiguration _configuration;
 
-        public UserService(AppDBContext context)
+        public UserService(AppDBContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         public async Task<List<CharacterResponse>> GetUserCharacters(string username)
@@ -115,7 +118,7 @@ namespace RickYMorty.service
             return $"User {user.Username} has worked and earned 100 money. Total money: {user.Money}";
         }
 
-        public async Task EditUsername(int id, string newUsername)
+        public async Task<string> EditUsername(int id, string newUsername)
         {
             var user = await GetUserByID(id);
             if (newUsername == user.Username)
@@ -132,6 +135,7 @@ namespace RickYMorty.service
             }
             user.Username = newUsername;
             await _context.SaveChangesAsync();
+            return new GenerateToken().generateToken(user, _configuration);
         }
 
         public async Task<User> GetUserByUsername(string username)

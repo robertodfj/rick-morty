@@ -53,9 +53,9 @@ namespace RickYMorty.controller
         public async Task<IActionResult> EditUsername(string newUsername)
         {
             var idClaim = GetUserID();
-            await userService.EditUsername(idClaim, newUsername);
+            var token = await userService.EditUsername(idClaim, newUsername);
             logger.LogInformation("User {ID} changed username to {NewUsername}", idClaim, newUsername);
-            return Ok(new { Message = "Username updated successfully" });
+            return Ok(new { Token = token });
         }
 
         private int GetUserID()

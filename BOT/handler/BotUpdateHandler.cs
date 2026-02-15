@@ -7,12 +7,18 @@ using Bot.commands;
 using Bot.service;
 using Bot.model.request;
 using Bot.token;
+using System.Net.Mail;
 
 /*
 TAREAS RESTANTES
 user/edit
     Hacer bonito la respuesta para que no quede asi: Login failed: {"message":"Invalid username or password"}
     Pruebas completas de la api consumida desde telegram no postman
+        Revisar el comandos:
+            - my info
+            - my characters
+            - my episodes da error NOPT FOUND EN TODOS
+
 */
 
 namespace Bot.handler
@@ -175,7 +181,9 @@ namespace Bot.handler
             {
                 await botClient.SendMessage(
                     chatId: chatId,
-                        text: "🎮 Available commands:" + Environment.NewLine +
+                        text: "🎮 Available commands:" + Environment.NewLine
+                            + Environment.NewLine
+                            + Environment.NewLine +
                             "/start - Start the bot" + Environment.NewLine +
                             "/help - Show this help message" + Environment.NewLine +
                             "/register - Register a new user" + Environment.NewLine +
@@ -184,8 +192,8 @@ namespace Bot.handler
                             "/captureEpisode - Capture a random episode" + Environment.NewLine +
                             "/sellCharacter - Sell a character you own" + Environment.NewLine +
                             "/sellEpisode - Sell an episode you own" + Environment.NewLine +
-                            "cancelCharacterSell - Cancel the sale of a character you have for sale" + Environment.NewLine +
-                            "cancelEpisodeSell - Cancel the sale of an episode you have for sale" + Environment.NewLine +
+                            "/cancelCharacterSell - Cancel the sale of a character you have for sale" + Environment.NewLine +
+                            "/cancelEpisodeSell - Cancel the sale of an episode you have for sale" + Environment.NewLine +
                             "/buyCharacter - Buy a character from the market" + Environment.NewLine +
                             "/buyEpisode - Buy an episode from the market" + Environment.NewLine +
                             "/viewMarket - View all available items in the market" + Environment.NewLine +
@@ -196,8 +204,9 @@ namespace Bot.handler
                             "/myInfo - View your user info" + Environment.NewLine +
                             "/userInfo <username> - View another user's info" + Environment.NewLine +
                             "/work - Work to earn money & more oportunities to capture items" + Environment.NewLine +
-                            "/editUsername <newUsername> - Edit your username" +
-                            Environment.NewLine +
+                            "/editUsername <newUsername> - Edit your username" + Environment.NewLine
+                            + Environment.NewLine
+                            + Environment.NewLine +
                             "⚠️ REMINDER: This bot is for demonstration purposes only. Do not share sensitive information. ⚠️",
                     cancellationToken: cancellationToken
                 );
@@ -510,34 +519,34 @@ namespace Bot.handler
             {
 
                 var parts = messageText.Split(' ');
-                    if (parts.Length != 2)
-                    {
-                        await botClient.SendMessage(
-                        chatId: chatId,
-                        text: "🚨 ERROR: Usage: /charactersUser <username> Example: /charactersUser user123",
-                        cancellationToken: cancellationToken
-                    );
-                        return;
-                    }
-
-               await SendCommandWithParmsAsync(chatId, botClient, cancellationToken, async (userToken, username) =>
+                if (parts.Length != 2)
                 {
-                    var charactersUser = await _userCharactersCommand.ExecuteAsync(userToken, username);
-                    return charactersUser.Message;
-                }, parts[1], "Fetching user's characters... 🧠...");
+                    await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "🚨 ERROR: Usage: /charactersUser <username> Example: /charactersUser user123",
+                    cancellationToken: cancellationToken
+                );
+                    return;
+                }
+
+                await SendCommandWithParmsAsync(chatId, botClient, cancellationToken, async (userToken, username) =>
+                 {
+                     var charactersUser = await _userCharactersCommand.ExecuteAsync(userToken, username);
+                     return charactersUser.Message;
+                 }, parts[1], "Fetching user's characters... 🧠...");
             }
             if (messageText.StartsWith("/episodesUser"))
             {
                 var parts = messageText.Split(' ');
-                    if (parts.Length != 2)
-                    {
-                        await botClient.SendMessage(
-                        chatId: chatId,
-                        text: "🚨 ERROR: Usage: /episodesUser <username> Example: /episodesUser user123",
-                        cancellationToken: cancellationToken
-                    );
-                        return;
-                    }
+                if (parts.Length != 2)
+                {
+                    await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "🚨 ERROR: Usage: /episodesUser <username> Example: /episodesUser user123",
+                    cancellationToken: cancellationToken
+                );
+                    return;
+                }
 
                 await SendCommandWithParmsAsync(chatId, botClient, cancellationToken, async (userToken, username) =>
                 {
@@ -596,10 +605,13 @@ namespace Bot.handler
 
                 await SendCommandWithParmsAsync(chatId, botClient, cancellationToken, async (userToken, newUsername) =>
                 {
-                    var result = await _userService.EditUsername(userToken, newUsername);
-                    return result;
+                    var response = await _userService.EditUsername(userToken, newUsername);
+                    var newToken = _extractToken.GetTokenFromResponse(response);
+                    SaveUserToken(chatId, newToken);
+
+                    return $"Username updated successfully! Your new token is now active.";
                 }, parts[1], "Editing username... 🧠...");
-            }
-        }
+                        }
+                    }
     }
 }
