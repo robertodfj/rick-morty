@@ -75,6 +75,17 @@ namespace RickYMorty.controller
             return Ok(result);
         }
 
+        // Quitar un personaje de en venta
+        [HttpDelete("remove-from-sale/{characterId}")]
+        [Authorize]
+        public async Task<IActionResult> RemoveCharacterFromSale(int characterId)
+        {
+            var userId = GetUserID();
+            var result = await tradeService.RemoveCharacterFromSale(userId, characterId);
+            _logger.LogInformation("Character with ID {CharacterId} removed from sale by user {UserId}", characterId, userId);
+            return Ok(result);
+        }
+
         // Comprar un personaje
         [HttpPost("buy/{characterId}")]
         [Authorize]

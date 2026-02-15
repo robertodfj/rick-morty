@@ -93,6 +93,45 @@ namespace RickYMorty.service
             return $"Episode with ID {putEpisodeForSaleDTO.ItemId} is now for sale at price {putEpisodeForSaleDTO.Price}.";
         }
 
+        // Quitar de la venta un personaje o episodio
+        public async Task<string> RemoveCharacterFromSale(int userId, int characterId)
+        {
+            var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == characterId && c.OwnedByUserId == userId);
+            if (character == null)
+            {
+                throw new NotFoundException("Character not found or you do not own this character.");
+            }
+            if (!character.ForSale)
+            {
+                throw new ConflictException("Character is not currently for sale.");
+            }
+
+            character.ForSale = false;
+            character.Price = 0;
+            await _context.SaveChangesAsync();
+
+            return $"Character with ID {characterId} has been removed from sale.";
+        }
+
+        public async Task<string> RemoveEpisodeFromSale(int userId, int episodeId)
+        {
+            var episode = await _context.Episodes.FirstOrDefaultAsync(e => e.Id == episodeId && e.OwnedByUserId == userId);
+            if (episode == null)
+            {
+                throw new NotFoundException("Episode not found or you do not own this episode.");
+            }
+            if (!episode.ForSale)
+            {
+                throw new ConflictException("Episode is not currently for sale.");
+            }
+
+            episode.ForSale = false;
+            episode.Price = 0;
+            await _context.SaveChangesAsync();
+
+            return $"Episode with ID {episodeId} has been removed from sale.";
+        }
+
         // Comprar un personaje o episodio
         public async Task<CharacterResponse> BuyCharacter(int buyerId, int characterId)
         {
