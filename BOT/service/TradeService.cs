@@ -79,5 +79,14 @@ namespace Bot.service
             var content = await response.Content.ReadAsStringAsync();
             return content;
         }
+
+        public async Task<string> ViewMarket(string token)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_apiUrl.TrimEnd('/')}/characters/for-sale");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var response = await _httpClient.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+            return content;
+        }
     }
 }

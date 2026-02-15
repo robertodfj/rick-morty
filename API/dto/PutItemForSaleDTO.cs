@@ -5,7 +5,6 @@ namespace RickYMorty.dto
     public class PutItemForSaleDTO
     {
         [Required]
-        [Range(1, 826, ErrorMessage = "ItemId must be greater than 0.")]
         public int ItemId { get; set; }
 
         [Required]

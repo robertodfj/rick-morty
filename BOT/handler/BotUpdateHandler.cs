@@ -20,7 +20,6 @@ my-characters
 my-episodes
 characters/usuarioEnemigo
 episodes/usuarioEnemigo
-characters/for-sale ()tienda completa
 user/work
 user/edit
 
@@ -40,12 +39,13 @@ namespace Bot.handler
         private readonly PutEpisodeForSaleCommand _sellEpisodeCommand;
         private readonly BuyCharacterCommand _buyCharacterCommand;
         private readonly BuyEpisodeCommand _buyEpisodeCommand;
+        private readonly ViewMarketCommand _viewMarketCommand;
         private readonly ExtractToken _extractToken;
         private readonly Dictionary<long, string> _userTokens = new();
 
         public BotUpdateHandler(ITelegramBotClient botClient, RegisterCommand registerCommand, LoginCommand loginCommand, CaptureCharacterCommand captureCharacterCommand,
                                 CaptureEpisodeCommand captureEpisodeCommand, PutCharacterForSaleCommand sellCharacterCommand, PutEpisodeForSaleCommand sellEpisodeCommand,
-                                BuyCharacterCommand buyCharacterCommand, BuyEpisodeCommand buyEpisodeCommand,
+                                BuyCharacterCommand buyCharacterCommand, BuyEpisodeCommand buyEpisodeCommand, ViewMarketCommand viewMarketCommand,
                                 ExtractToken extractToken, Dictionary<long, string> userTokens)
         {
             _botClient = botClient;
@@ -57,6 +57,7 @@ namespace Bot.handler
             _sellEpisodeCommand = sellEpisodeCommand;
             _buyCharacterCommand = buyCharacterCommand;
             _buyEpisodeCommand = buyEpisodeCommand;
+            _viewMarketCommand = viewMarketCommand;
             _extractToken = extractToken;
             _userTokens = userTokens;
         }
@@ -458,6 +459,35 @@ namespace Bot.handler
                     await botClient.SendMessage(
                         chatId: chatId,
                         text: $"🚨 Error buying the episode: {ex.Message}",
+                        cancellationToken: cancellationToken
+                    );
+                }
+            }
+            if (messageText == "/viewMarket")
+            {
+                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
+                if (string.IsNullOrEmpty(userToken)) return;
+
+                await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "Fetching market data... 🛍️",
+                    cancellationToken: cancellationToken
+                );
+
+                try
+                {
+                    var marketData = await _viewMarketCommand.ExecuteAsync(userToken);
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: marketData.Message,
+                        cancellationToken: cancellationToken
+                    );
+                }
+                catch (Exception ex)
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: $"🚨 Error fetching market data: {ex.Message}",
                         cancellationToken: cancellationToken
                     );
                 }
