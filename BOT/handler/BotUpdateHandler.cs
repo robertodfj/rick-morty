@@ -5,9 +5,12 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Bot.commands;
 using Bot.service;
-using Bot.model.request;
+using Bot.model;
 using Bot.token;
 using System.Net.Mail;
+using System.Text.Json;
+using Bot.model.request;
+using Bot.model.response;
 
 /*
 TAREAS RESTANTES
@@ -15,9 +18,7 @@ user/edit
     Hacer bonito la respuesta para que no quede asi: Login failed: {"message":"Invalid username or password"}
     Pruebas completas de la api consumida desde telegram no postman
         Revisar el comandos:
-            - my info
-            - my characters
-            - my episodes da error NOPT FOUND EN TODOS
+            al hacer cambio de nombre funciona todo pero al volver a hacer login
 
 */
 
@@ -42,6 +43,7 @@ namespace Bot.handler
         private readonly UserService _userService;
         private readonly ExtractToken _extractToken;
         private readonly Dictionary<long, string> _userTokens = new();
+        private readonly Dictionary<long, string> _usernames = new();
 
         public BotUpdateHandler(ITelegramBotClient botClient, RegisterCommand registerCommand, LoginCommand loginCommand, CaptureCharacterCommand captureCharacterCommand,
                                 CaptureEpisodeCommand captureEpisodeCommand, PutCharacterForSaleCommand sellCharacterCommand, PutEpisodeForSaleCommand sellEpisodeCommand,
@@ -77,6 +79,16 @@ namespace Bot.handler
         public string GetUserToken(long userId)
         {
             return _userTokens.TryGetValue(userId, out var token) ? token : string.Empty;
+        }
+
+        public void SaveUsername(long userId, string username)
+        {
+            _usernames[userId] = username;
+        }
+
+        public string GetUsername(long userId)
+        {
+            return _usernames.TryGetValue(userId, out var username) ? username : userId.ToString();
         }
 
         // Verificar el token
@@ -121,11 +133,31 @@ namespace Bot.handler
             }
             catch (Exception ex)
             {
+                if (ex.Message.Contains("401") || ex.Message.Contains("403"))
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: "🚨⚠️ Your session has expired. Please log in again.",
+                        cancellationToken: cancellationToken
+                    );
+                    SaveUserToken(chatId, string.Empty); // Limpiar el token almacenado
+                    return;
+                }
+                if (ex.Message == "API error Conflict: {\"message\":\"Capture failed. Keep working to increase your chances!\"}")
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: "⚠️ Capture failed. Keep working to increase your chances!",
+                        cancellationToken: cancellationToken
+                    );
+                    return;
+                }
                 await botClient.SendMessage(
-                    chatId: chatId,
-                    text: $"🚨 Error fetching data: {ex.Message}",
-                    cancellationToken: cancellationToken
-                );
+                        chatId: chatId,
+                        text: $"🚨 Error fetching data: {ex.Message}",
+                        cancellationToken: cancellationToken
+                    );
+                return;
             }
         }
         public async Task SendCommandWithParmsAsync<T>(long chatId, ITelegramBotClient botClient, CancellationToken cancellationToken, Func<string, T, Task<string>> action, T parameter, string processingMessage = "Processing...")
@@ -233,6 +265,7 @@ namespace Bot.handler
 
                     if (registrationResult.Success)
                     {
+                        SaveUsername(chatId, username);
                         await botClient.SendMessage(
                             chatId: chatId,
                             text: $"Registration successful! Welcome, {username}!",
@@ -260,7 +293,7 @@ namespace Bot.handler
             }
             if (messageText == "/login")
             {
-                string username = update.Message.From?.Id.ToString() ?? string.Empty;
+                string username = GetUsername(chatId);
                 if (username.Length > 20) username = username.Substring(0, 20);
                 string password = $"TgBotPwd{update.Message.From?.Id}";
                 try
@@ -276,6 +309,7 @@ namespace Bot.handler
                     if (loginResult.Success)
                     {
                         // Guardamos el token despues de extraerlo de la respuesta del login
+                        username = GetUsername(chatId);
                         SaveUserToken(chatId, _extractToken.GetTokenFromResponse(loginResult.Message));
 
                         await botClient.SendMessage(
@@ -306,16 +340,34 @@ namespace Bot.handler
             {
                 await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) =>
                 {
-                    var captureCharacter = await _captureCharacterCommand.ExecuteAsync(userToken);
-                    return captureCharacter.Message;
+                    var responseJson = await _captureCharacterCommand.ExecuteAsync(userToken);
+                    var captureCharacter = JsonSerializer.Deserialize<Bot.model.response.CaptureCharacter>(
+                        responseJson.Message,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+                    if (captureCharacter != null && captureCharacter.Id != 0)
+                    {
+                        return Bot.model.response.Formatter.FormaCaptureCharacter(captureCharacter);
+                    }
+
+                    return "❌ Error capturing the character, work and try again!";
                 }, "Capturing character...");
             }
             if (messageText == "/captureEpisode")
             {
                 await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) =>
                 {
-                    var captureEpisode = await _captureEpisodeCommand.ExecuteAsync(userToken);
-                    return captureEpisode.Message;
+                    var responseJson = await _captureEpisodeCommand.ExecuteAsync(userToken);
+                    var captureEpisode = JsonSerializer.Deserialize<Bot.model.response.CaptureEpisode>(
+                        responseJson.Message,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+                    if (captureEpisode != null && captureEpisode.Id != 0)
+                    {
+                        return Bot.model.response.Formatter.FormaCaptureEpisode(captureEpisode);
+                    } 
+
+                    return "❌ Error capturing the episode, work and try again!";
                 }, "Capturing episode...");
             }
             if (messageText.StartsWith("/sellCharacter"))
@@ -495,8 +547,13 @@ namespace Bot.handler
             {
                 await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) =>
                 {
-                    var marketItems = await _viewMarketCommand.ExecuteAsync(userToken);
-                    return marketItems.Message;
+                    var marketJson = await _viewMarketCommand.ExecuteAsync(userToken);
+                    var marketItems = JsonSerializer.Deserialize<List<MarketItem>>(marketJson.Message, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    var formattedMessage = Bot.model.response.Formatter.FormatMarketItems(marketItems);
+                    return formattedMessage;
                 }, "Fetching market items... 🛒");
             }
             if (messageText == "/myCharacters")
@@ -590,6 +647,7 @@ namespace Bot.handler
                     return userInfo;
                 }, parts[1], "Fetching user info... 🧠...");
             }
+            /* Funcionalidades en mantenimiento / revision (Al cambiar el nombre logea bien 1 vez luego al apagar el bot y volver a logear no)
             if (messageText.StartsWith("/editUsername"))
             {
                 var parts = messageText.Split(' ');
@@ -608,10 +666,13 @@ namespace Bot.handler
                     var response = await _userService.EditUsername(userToken, newUsername);
                     var newToken = _extractToken.GetTokenFromResponse(response);
                     SaveUserToken(chatId, newToken);
+                    SaveUsername(chatId, newUsername);
+
 
                     return $"Username updated successfully! Your new token is now active.";
                 }, parts[1], "Editing username... 🧠...");
-                        }
-                    }
+            }
+            */
+        }
     }
 }
