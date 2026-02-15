@@ -14,12 +14,10 @@ using Bot.token;
 // Hacer que se pueda editar el username
 // Hacer que se pueda quitar el personaje de en venta
 // Pruebas completas de la api consumida desde telegram no postman
+// Hacer el codigo mas escalable y limpio sin repeticion
 /*
 COMANDOS A IMPLEMENTAR
-user/work
 user/edit
-
-my-info
 */
 
 namespace Bot.handler
@@ -40,13 +38,14 @@ namespace Bot.handler
         private readonly MyEpisodesCommand _myEpisodesCommand;
         private readonly UserCharactersCommand _userCharactersCommand;
         private readonly UserEpisodesCommand _userEpisodesCommand;
+        private readonly UserService _userService;
         private readonly ExtractToken _extractToken;
         private readonly Dictionary<long, string> _userTokens = new();
 
         public BotUpdateHandler(ITelegramBotClient botClient, RegisterCommand registerCommand, LoginCommand loginCommand, CaptureCharacterCommand captureCharacterCommand,
                                 CaptureEpisodeCommand captureEpisodeCommand, PutCharacterForSaleCommand sellCharacterCommand, PutEpisodeForSaleCommand sellEpisodeCommand,
                                 BuyCharacterCommand buyCharacterCommand, BuyEpisodeCommand buyEpisodeCommand, ViewMarketCommand viewMarketCommand, MyCharactersCommand myCharactersCommand, 
-                                MyEpisodesCommand myEpisodesCommand, UserCharactersCommand userCharactersCommand, UserEpisodesCommand userEpisodesCommand,
+                                MyEpisodesCommand myEpisodesCommand, UserCharactersCommand userCharactersCommand, UserEpisodesCommand userEpisodesCommand, UserService userService,
                                 ExtractToken extractToken, Dictionary<long, string> userTokens)
         {
             _botClient = botClient;
@@ -63,6 +62,7 @@ namespace Bot.handler
             _myEpisodesCommand = myEpisodesCommand;
             _userCharactersCommand = userCharactersCommand;
             _userEpisodesCommand = userEpisodesCommand;
+            _userService = userService;
             _extractToken = extractToken;
             _userTokens = userTokens;
         }
@@ -120,16 +120,24 @@ namespace Bot.handler
             {
                 await botClient.SendMessage(
                     chatId: chatId,
-                    text: "Available commands:" + Environment.NewLine +
-                          "/start - Start the bot" + Environment.NewLine +
-                          "/help - Show this help message" + Environment.NewLine +
-                          "/register - Register a new user" + Environment.NewLine +
-                          "/login - Login to your account" + Environment.NewLine +
-                          "/myInfo - Show your user information" + Environment.NewLine +
-                          "/userInfo - Show the user information" + Environment.NewLine +
-                          "/editUser - Edit your user information" + Environment.NewLine +
-                          Environment.NewLine +
-                            "REMINDER: This bot is for demonstration purposes only. Do not share sensitive information.",
+                        text: "🎮 Available commands:" + Environment.NewLine +
+                            "/start - Start the bot" + Environment.NewLine +
+                            "/help - Show this help message" + Environment.NewLine +
+                            "/register - Register a new user" + Environment.NewLine +
+                            "/login - Login to your account" + Environment.NewLine +
+                            "/captureCharacter - Capture a random character" + Environment.NewLine +
+                            "/captureEpisode - Capture a random episode" + Environment.NewLine +
+                            "/sellCharacter - Sell a character you own" + Environment.NewLine +
+                            "/sellEpisode - Sell an episode you own" + Environment.NewLine +
+                            "/buyCharacter - Buy a character from the market" + Environment.NewLine +
+                            "/buyEpisode - Buy an episode from the market" + Environment.NewLine +
+                            "/viewMarket - View all available items in the market" + Environment.NewLine +
+                            "/myCharacters - View your characters" + Environment.NewLine +
+                            "/myEpisodes - View your episodes" + Environment.NewLine +
+                            "/charactersUser <username> - View another user's characters" + Environment.NewLine +
+                            "/episodesUser <username> - View another user's episodes" + Environment.NewLine +
+                            Environment.NewLine +
+                            "⚠️ REMINDER: This bot is for demonstration purposes only. Do not share sensitive information. ⚠️",
                     cancellationToken: cancellationToken
                 );
                 return;
@@ -629,6 +637,104 @@ namespace Bot.handler
                     await botClient.SendMessage(
                         chatId: chatId,
                         text: $"🚨 Error fetching user's episodes: {ex.Message}",
+                        cancellationToken: cancellationToken
+                    );
+                }
+            }
+            if (messageText == "/myInfo")
+            {
+                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
+                if (string.IsNullOrEmpty(userToken)) return;
+
+                await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "Fetching your user info... 🧠",
+                    cancellationToken: cancellationToken
+                );
+
+                try
+                {
+                    var userInfo = await _userService.GetMyUserInfo(userToken);
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: userInfo,
+                        cancellationToken: cancellationToken
+                    );
+                }
+                catch (Exception ex)
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: $"🚨 Error fetching your user info: {ex.Message}",
+                        cancellationToken: cancellationToken
+                    );
+                }
+            }
+            if (messageText == "/work")
+            {
+                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
+                if (string.IsNullOrEmpty(userToken)) return;
+
+                await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "Working... 🧠",
+                    cancellationToken: cancellationToken
+                );
+
+                try
+                {
+                    var userInfo = await _userService.Work(userToken);
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: userInfo,
+                        cancellationToken: cancellationToken
+                    );
+                }
+                catch (Exception ex)
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: $"🚨 Error working: {ex.Message}",
+                        cancellationToken: cancellationToken
+                    );
+                }
+            }
+            if (messageText.StartsWith("/userInfo"))
+            {
+                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
+                if (string.IsNullOrEmpty(userToken)) return;
+
+                var parts = messageText.Split(' ');
+                if (parts.Length != 2)
+                {
+                    await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "🚨 ERROR: Usage: userInfo <username> Example: userInfo user123",
+                    cancellationToken: cancellationToken
+                );
+                return;
+                }
+
+                await botClient.SendMessage(
+                    chatId: chatId,
+                    text: $"Fetching {parts[1]} user info... 🧠",
+                    cancellationToken: cancellationToken
+                );
+
+                try
+                {
+                    var userInfo = await _userService.GetUserInfo(userToken, parts[1]);
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: userInfo,
+                        cancellationToken: cancellationToken
+                    );
+                }
+                catch (Exception ex)
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: $"🚨 Error fetching user info: {ex.Message}",
                         cancellationToken: cancellationToken
                     );
                 }

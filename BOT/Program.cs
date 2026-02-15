@@ -17,6 +17,7 @@ class Program
         var httpClient = new HttpClient();
         var authService = new AuthService(httpClient, apiSettings.URL);
         var tradeService = new TradeService(httpClient, apiSettings.URL);
+        var userService = new UserService(httpClient, apiSettings.URL);
 
         var registerCommand = new RegisterCommand(authService);
         var loginCommand = new LoginCommand(authService);
@@ -37,7 +38,7 @@ class Program
         var handler = new BotUpdateHandler(new TelegramBotClient(botSettings.Token), registerCommand, loginCommand, 
         captureCharacterCommand, captureEpisodeCommand, sellCharacterCommand, sellEpisodeCommand, buyCharacterCommand,
         buyEpisodeCommand, viewMarketCommand, myCharactersCommand, myEpisodesCommand, userCharactersCommand, userEpisodesCommand,
-        extractToken, userTokens);
+        userService, extractToken, userTokens);
 
         var botClient = new TelegramBotClient(botSettings.Token);
         using var cts = new CancellationTokenSource();
