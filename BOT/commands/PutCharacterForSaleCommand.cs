@@ -17,5 +17,11 @@ namespace Bot.commands
             var result = await _tradeService.PutCharacterForSale(itemForSaleRequest, token);
             return (true, result);
         }
+
+        public async Task<(bool Success, string Message)> CancelAsync(int characterId, string token)
+        {
+            var result = await _tradeService.CancelCharacterForSale(characterId, token);
+            return (true, result);
+        }
     }
 }

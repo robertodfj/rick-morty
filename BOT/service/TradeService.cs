@@ -16,22 +16,27 @@ namespace Bot.service
             _apiUrl = apiUrl;
         }
 
+        private async Task<string> SendResponse(HttpRequestMessage request)
+        {
+            var response = await _httpClient.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+                throw new Exception($"API error {response.StatusCode}: {content}");
+            return content;
+        }
+
         public async Task<string> GetRandomCharacter(string token)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, $"{_apiUrl.TrimEnd('/')}/characters/capture");
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
-            return content;
+            return await SendResponse(request);
         }
 
         public async Task<string> GetRandomEpisode(string token)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, $"{_apiUrl.TrimEnd('/')}/episodes/capture");
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
-            return content;
+            return await SendResponse(request);
         }
 
         public async Task<string> PutCharacterForSale(ItemForSaleRequest itemForSaleRequest, string token)
@@ -41,9 +46,7 @@ namespace Bot.service
                 Content = JsonContent.Create(itemForSaleRequest)
             };
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
-            return content;
+            return await SendResponse(request);
         }
 
         public async Task<string> PutEpisodeForSale(ItemForSaleRequest itemForSaleRequest, string token)
@@ -53,77 +56,70 @@ namespace Bot.service
                 Content = JsonContent.Create(itemForSaleRequest)
             };
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
-            return content;
+            return await SendResponse(request);;
         }
 
         public async Task<string> BuyCharacter(int characterId, string token)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_apiUrl.TrimEnd('/')}/characters/buy/{characterId}")
-            {
-                Content = new StringContent(characterId.ToString(), System.Text.Encoding.UTF8, "text/plain")
-            };
-
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{_apiUrl.TrimEnd('/')}/characters/buy/{characterId}");
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
-            return content;
+            return await SendResponse(request);
         }
 
         public async Task<string> BuyEpisode(int episodeId, string token)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, $"{_apiUrl.TrimEnd('/')}/episodes/buy/{episodeId}");
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
-            return content;
+            return await SendResponse(request);
         }
 
         public async Task<string> ViewMarket(string token)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, $"{_apiUrl.TrimEnd('/')}/characters/for-sale");
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
-            return content;
+            return await SendResponse(request);
         }
 
         public async Task<string> GetMyCharacters(string token)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, $"{_apiUrl.TrimEnd('/')}/characters/my-characters");
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
-            return content;
+            return await SendResponse(request);
         }
 
         public async Task<string> GetMyEpisodes(string token)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, $"{_apiUrl.TrimEnd('/')}/episodes/my-episodes");
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
-            return content;
+            return await SendResponse(request);;
         }
 
         public async Task<string> GetUserCharacters(string token, string username)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, $"{_apiUrl.TrimEnd('/')}/characters/{username}");
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
-            return content;
+            return await SendResponse(request);
         }
 
         public async Task<string> GetUserEpisodes(string token, string username)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, $"{_apiUrl.TrimEnd('/')}/episodes/{username}");
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
-            return content;
+            return await SendResponse(request);
+        }
+
+        public async Task<string> CancelCharacterForSale(int characterId, string token)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"{_apiUrl.TrimEnd('/')}/characters/remove-from-sale/{characterId}");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            return await SendResponse(request);
+        }
+
+        public async Task<string> CancelEpisodeForSale(int episodeId, string token)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"{_apiUrl.TrimEnd('/')}/episodes/remove-from-sale/{episodeId}");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            return await SendResponse(request);
         }
     }
 }

@@ -75,7 +75,7 @@ namespace RickYMorty.controller
         }
 
         // Quitar un episodio de la venta
-        [HttpPost("remove-from-sale/{episodeId}")]
+        [HttpDelete("remove-from-sale/{episodeId}")]
         [Authorize]
         public async Task<IActionResult> RemoveEpisodeFromSale(int episodeId)
         {

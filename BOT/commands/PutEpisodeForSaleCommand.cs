@@ -17,5 +17,11 @@ namespace Bot.commands
             var result = await _tradeService.PutEpisodeForSale(itemForSaleRequest, token);
             return (true, result);
         }
+
+        public async Task<(bool Success, string Message)> CancelAsync(int episodeId, string token)
+        {
+            var result = await _tradeService.CancelEpisodeForSale(episodeId, token);
+            return (true, result);
+        }
     }
 }

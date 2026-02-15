@@ -12,8 +12,6 @@ using Bot.token;
 TAREAS RESTANTES
 user/edit
     Hacer bonito la respuesta para que no quede asi: Login failed: {"message":"Invalid username or password"}
-    Hacer que se pueda editar el username
-    Hacer que se pueda quitar el personaje de en venta
     Pruebas completas de la api consumida desde telegram no postman
 */
 
@@ -186,6 +184,8 @@ namespace Bot.handler
                             "/captureEpisode - Capture a random episode" + Environment.NewLine +
                             "/sellCharacter - Sell a character you own" + Environment.NewLine +
                             "/sellEpisode - Sell an episode you own" + Environment.NewLine +
+                            "cancelCharacterSell - Cancel the sale of a character you have for sale" + Environment.NewLine +
+                            "cancelEpisodeSell - Cancel the sale of an episode you have for sale" + Environment.NewLine +
                             "/buyCharacter - Buy a character from the market" + Environment.NewLine +
                             "/buyEpisode - Buy an episode from the market" + Environment.NewLine +
                             "/viewMarket - View all available items in the market" + Environment.NewLine +
@@ -193,6 +193,10 @@ namespace Bot.handler
                             "/myEpisodes - View your episodes" + Environment.NewLine +
                             "/charactersUser <username> - View another user's characters" + Environment.NewLine +
                             "/episodesUser <username> - View another user's episodes" + Environment.NewLine +
+                            "/myInfo - View your user info" + Environment.NewLine +
+                            "/userInfo <username> - View another user's info" + Environment.NewLine +
+                            "/work - Work to earn money & more oportunities to capture items" + Environment.NewLine +
+                            "/editUsername <newUsername> - Edit your username" +
                             Environment.NewLine +
                             "⚠️ REMINDER: This bot is for demonstration purposes only. Do not share sensitive information. ⚠️",
                     cancellationToken: cancellationToken
@@ -417,6 +421,66 @@ namespace Bot.handler
                     var buyEpisode = await _buyEpisodeCommand.ExecuteAsync(id, userToken);
                     return buyEpisode.Message;
                 }, itemId, "Buying the episode... 🛒...");
+            }
+            if (messageText.StartsWith("/cancelCharacterSell"))
+            {
+                var parts = messageText.Split(' ');
+                if (parts.Length != 2)
+                {
+                    await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "🚨 ERROR: Usage: /cancelCharacterSell <characterId> Example: /cancelCharacterSell 1",
+                    cancellationToken: cancellationToken
+                );
+                    return;
+                }
+
+                if (!int.TryParse(parts[1], out int characterId))
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: "🚨 ERROR: The character ID must be a valid integer.",
+                        cancellationToken: cancellationToken
+                    );
+                    return;
+                }
+
+                await SendCommandWithParmsAsync(chatId, botClient, cancellationToken, async (userToken, id) =>
+                {
+                    var cancelSell = await _sellCharacterCommand.CancelAsync(id, userToken);
+                    return cancelSell.Message;
+                }, characterId, "Canceling character sale... 🛑...");
+
+            }
+            if (messageText.StartsWith("/cancelEpisodeSell"))
+            {
+                var parts = messageText.Split(' ');
+                if (parts.Length != 2)
+                {
+                    await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "🚨 ERROR: Usage: /cancelEpisodeSell <episodeId> Example: /cancelEpisodeSell 1",
+                    cancellationToken: cancellationToken
+                );
+                    return;
+                }
+
+                if (!int.TryParse(parts[1], out int episodeId))
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: "🚨 ERROR: The episode ID must be a valid integer.",
+                        cancellationToken: cancellationToken
+                    );
+                    return;
+                }
+
+                await SendCommandWithParmsAsync(chatId, botClient, cancellationToken, async (userToken, id) =>
+                {
+                    var cancelSell = await _sellEpisodeCommand.CancelAsync(id, userToken);
+                    return cancelSell.Message;
+                }, episodeId, "Canceling episode sale... 🛑...");
+
             }
             if (messageText == "/viewMarket")
             {
