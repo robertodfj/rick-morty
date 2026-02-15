@@ -49,6 +49,18 @@ namespace RickYMorty.controller
             logger.LogInformation("User {ID} worked and earned {Money} money", idClaim, response);
             return Ok(new { EarnedMoney = response });
         }
+
+        [HttpPut("edit/{newUsername}")]
+        [Authorize]
+        public async Task<IActionResult> EditUsername(string newUsername)
+        {
+            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(idClaim))
+                return Unauthorized("User ID claim not found.");
+            await userService.EditUsername(int.Parse(idClaim), newUsername);
+            logger.LogInformation("User {ID} changed username to {NewUsername}", idClaim, newUsername);
+            return Ok(new { Message = "Username updated successfully" });
+        }
         
     }
 }

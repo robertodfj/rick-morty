@@ -115,6 +115,25 @@ namespace RickYMorty.service
             return $"User {user.Username} has worked and earned 100 money. Total money: {user.Money}";
         }
 
+        public async Task EditUsername(int id, string newUsername)
+        {
+            var user = await GetUserByID(id);
+            if (newUsername == user.Username)
+            {
+                throw new ConflictException("New username cannot be the same as the current username");
+            }
+            if (string.IsNullOrWhiteSpace(newUsername))
+            {
+                throw new BadRequestException("Username cannot be empty");
+            }
+            if (await _context.Users.AnyAsync(u => u.Username == newUsername))
+            {
+                throw new ConflictException("Username already exists");
+            }
+            user.Username = newUsername;
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<User> GetUserByUsername(string username)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);

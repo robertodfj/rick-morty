@@ -8,16 +8,13 @@ using Bot.service;
 using Bot.model.request;
 using Bot.token;
 
-//TAREAS RESTANTES
-// Hacer bonito la respuesta para que no quede asi: Login failed: {"message":"Invalid username or password"}
-// Loguear automaticamente cada hora para renovar el token (si es que expira a la hora, sino ajustar el tiempo)
-// Hacer que se pueda editar el username
-// Hacer que se pueda quitar el personaje de en venta
-// Pruebas completas de la api consumida desde telegram no postman
-// Hacer el codigo mas escalable y limpio sin repeticion
 /*
-COMANDOS A IMPLEMENTAR
+TAREAS RESTANTES
 user/edit
+    Hacer bonito la respuesta para que no quede asi: Login failed: {"message":"Invalid username or password"}
+    Hacer que se pueda editar el username
+    Hacer que se pueda quitar el personaje de en venta
+    Pruebas completas de la api consumida desde telegram no postman
 */
 
 namespace Bot.handler
