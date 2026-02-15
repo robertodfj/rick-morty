@@ -17,37 +17,42 @@ namespace Bot.service
             _apiUrl = apiUrl;
         }
 
-        public async Task<string> GetMyUserInfo(string token)
+        private async Task<string> SendResponse(HttpRequestMessage request)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, $"{_apiUrl.TrimEnd('/')}/user/my-info");
-            request.Headers.Add("Authorization", $"Bearer {token}");
             var response = await _httpClient.SendAsync(request);
             var content = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode)
                 throw new Exception($"API error {response.StatusCode}: {content}");
             return content;
+        }
+
+        public async Task<string> GetMyUserInfo(string token)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_apiUrl.TrimEnd('/')}/user/my-info");
+            request.Headers.Add("Authorization", $"Bearer {token}");
+            return await SendResponse(request);
         }
 
         public async Task<string> Work(string token)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, $"{_apiUrl.TrimEnd('/')}/user/work");
             request.Headers.Add("Authorization", $"Bearer {token}");
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new Exception($"API error {response.StatusCode}: {content}");
-            return content;
+            return await SendResponse(request);
         }
 
         public async Task<string> GetUserInfo(string token, string username)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, $"{_apiUrl.TrimEnd('/')}/user/info/{username}");
             request.Headers.Add("Authorization", $"Bearer {token}");
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-                throw new Exception($"API error {response.StatusCode}: {content}");
-            return content;
+            return await SendResponse(request);
+
+        }
+        
+        public async Task<string> EditUsername(string token, string newUsername)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Put, $"{_apiUrl.TrimEnd('/')}/user/edit/{newUsername}");
+            request.Headers.Add("Authorization", $"Bearer {token}");
+            return await SendResponse(request);
         }
     }
 }

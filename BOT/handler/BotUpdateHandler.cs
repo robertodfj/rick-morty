@@ -517,6 +517,25 @@ namespace Bot.handler
                     return userInfo;
                 }, parts[1], "Fetching user info... 🧠...");
             }
+            if (messageText.StartsWith("/editUsername"))
+            {
+                var parts = messageText.Split(' ');
+                if (parts.Length != 2)
+                {
+                    await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "🚨 ERROR: Usage: /editUsername <newUsername> Example: /editUsername newuser123",
+                    cancellationToken: cancellationToken
+                );
+                    return;
+                }
+
+                await SendCommandWithParmsAsync(chatId, botClient, cancellationToken, async (userToken, newUsername) =>
+                {
+                    var result = await _userService.EditUsername(userToken, newUsername);
+                    return result;
+                }, parts[1], "Editing username... 🧠...");
+            }
         }
     }
 }
