@@ -600,16 +600,26 @@ namespace Bot.handler
             {
                 await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) =>
                 {
-                    var myCharacters = await _myCharactersCommand.ExecuteAsync(userToken);
-                    return myCharacters.Message;
+                    var json = await _myCharactersCommand.ExecuteAsync(userToken);
+                    var characters = JsonSerializer.Deserialize<List<Character>>(json.Message, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    var formattedMessage = Bot.model.response.Formatter.FormatCharacters(characters);
+                    return formattedMessage;
                 }, "Fetching your characters... 🧠");
             }
             if (messageText == "/myEpisodes")
             {
                 await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) =>
                 {
-                    var myEpisodes = await _myEpisodesCommand.ExecuteAsync(userToken);
-                    return myEpisodes.Message;
+                    var json = await _myEpisodesCommand.ExecuteAsync(userToken);
+                    var episodes = JsonSerializer.Deserialize<List<Episode>>(json.Message, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    var formattedMessage = Bot.model.response.Formatter.FormatEpisodes(episodes);
+                    return formattedMessage;
                 }, "Fetching your episodes... 🧠");
             }
             if (messageText.StartsWith("/charactersUser"))
@@ -628,8 +638,13 @@ namespace Bot.handler
 
                 await SendCommandWithParmsAsync(chatId, botClient, cancellationToken, async (userToken, username) =>
                  {
-                     var charactersUser = await _userCharactersCommand.ExecuteAsync(userToken, username);
-                     return charactersUser.Message;
+                     var jsonResponse = await _userCharactersCommand.ExecuteAsync(userToken, username);
+                     var characters = JsonSerializer.Deserialize<List<Character>>(jsonResponse.Message, new JsonSerializerOptions
+                     {
+                         PropertyNameCaseInsensitive = true
+                     });
+                     var formattedMessage = Bot.model.response.Formatter.FormatCharacters(characters);
+                     return formattedMessage;
                  }, parts[1], "Fetching user's characters... 🧠...");
             }
             if (messageText.StartsWith("/episodesUser"))
@@ -647,16 +662,25 @@ namespace Bot.handler
 
                 await SendCommandWithParmsAsync(chatId, botClient, cancellationToken, async (userToken, username) =>
                 {
-                    var episodesUser = await _userEpisodesCommand.ExecuteAsync(userToken, username);
-                    return episodesUser.Message;
+                    var jsonResponse = await _userEpisodesCommand.ExecuteAsync(userToken, username);
+                    var episodes = JsonSerializer.Deserialize<List<Episode>>(jsonResponse.Message, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    var formattedMessage = Bot.model.response.Formatter.FormatEpisodes(episodes);
+                    return formattedMessage;
                 }, parts[1], "Fetching user's episodes... 🧠...");
             }
             if (messageText == "/myInfo")
             {
                 await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) =>
                 {
-                    var userInfo = await _userService.GetMyUserInfo(userToken);
-                    return userInfo;
+                    var jsonResponse = await _userService.GetMyUserInfo(userToken);
+                     var userInfo = JsonSerializer.Deserialize<Bot.model.UserInfo>(
+                        jsonResponse,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+                    return Bot.model.response.Formatter.FormatUserInfo(userInfo);
                 }, "Fetching your user info... 🧠");
             }
             if (messageText == "/work")
@@ -679,22 +703,25 @@ namespace Bot.handler
             }
             if (messageText.StartsWith("/userInfo"))
             {
-
                 var parts = messageText.Split(' ');
                 if (parts.Length != 2)
                 {
                     await botClient.SendMessage(
-                    chatId: chatId,
-                    text: "🚨 ERROR: Usage: userInfo <username> Example: userInfo user123",
-                    cancellationToken: cancellationToken
-                );
+                        chatId: chatId,
+                        text: "🚨 ERROR: Usage: userInfo <username> Example: /userInfo user123",
+                        cancellationToken: cancellationToken
+                    );
                     return;
                 }
 
                 await SendCommandWithParmsAsync(chatId, botClient, cancellationToken, async (userToken, username) =>
                 {
-                    var userInfo = await _userService.GetUserInfo(userToken, username);
-                    return userInfo;
+                    var jsonResponse = await _userService.GetUserInfo(userToken, username);
+                    var userInfo = JsonSerializer.Deserialize<Bot.model.UserInfo>(
+                        jsonResponse,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+                    return Bot.model.response.Formatter.FormatUserInfo(userInfo); // Convertimos UserInfo a string
                 }, parts[1], "Fetching user info... 🧠...");
             }
             /* Funcionalidades en mantenimiento / revision (Al cambiar el nombre logea bien 1 vez luego al apagar el bot y volver a logear no)

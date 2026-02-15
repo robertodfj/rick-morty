@@ -57,4 +57,66 @@ namespace Bot.model.response
             sb.AppendLine($"*Price:* {episode.Price}💰");
             return sb.ToString();
         }
-    }}
+
+        public static string FormatUserInfo(UserInfo userInfo)
+        {
+            if (userInfo == null)
+                return "Error fetching user info.";
+            var sb = new StringBuilder();
+            sb.AppendLine($"*Username:* {userInfo.Username}");
+            sb.AppendLine($"*Money:* {userInfo.Money} 💰");
+            sb.AppendLine($"*Last Worked:* {userInfo.LastWorked}");
+            return sb.ToString();
+        }
+
+        public static string FormatCharacters(List<Character>? characters)
+        {
+            if (characters == null || characters.Count == 0)
+                return "❌ You have no characters yet.";
+
+            var sb = new StringBuilder();
+            sb.AppendLine("🎯 *Your Characters* 🎯\n");
+
+            foreach (var character in characters)
+            {
+                sb.AppendLine($"*ID:* {character.Id}");
+                sb.AppendLine($"*Name:* {character.Name}");
+                sb.AppendLine($"*Status:* {character.Status}");
+                sb.AppendLine($"*Species:* {character.Species}");
+                sb.AppendLine($"*Gender:* {character.Gender}");
+                sb.AppendLine($"*For Sale:* {(character.ForSale ? "Yes ✅" : "No ❌")}");
+                if (character.Price > 0)
+                    sb.AppendLine($"*Price:* {character.Price} 💰");
+
+                sb.AppendLine("------------------------------");
+            }
+
+            return sb.ToString();
+        }
+
+        public static string FormatEpisodes(List<Episode>? episodes)
+        {
+            if (episodes == null || episodes.Count == 0)
+                return "❌ You have no episodes yet.";
+
+            var sb = new StringBuilder();
+            sb.AppendLine("🎯 *Your Episodes* 🎯\n");
+
+            foreach (var episode in episodes)
+            {
+                sb.AppendLine($"*ID:* {episode.Id}");
+                sb.AppendLine($"*Name:* {episode.Name}");
+                sb.AppendLine($"*Air Date:* {episode.AirDate}");
+                sb.AppendLine($"*Episode:* {episode.EpisodeCode}");
+                sb.AppendLine($"*Created:* {episode.Created}");
+                sb.AppendLine($"*For Sale:* {(episode.ForSale ? "Yes ✅" : "No ❌")}");
+                if (episode.Price > 0)
+                    sb.AppendLine($"*Price:* {episode.Price} 💰");
+
+                sb.AppendLine("------------------------------");
+            }
+
+            return sb.ToString();
+        }
+    }
+}
