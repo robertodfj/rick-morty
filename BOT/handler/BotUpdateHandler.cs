@@ -40,12 +40,15 @@ namespace Bot.handler
         private readonly BuyCharacterCommand _buyCharacterCommand;
         private readonly BuyEpisodeCommand _buyEpisodeCommand;
         private readonly ViewMarketCommand _viewMarketCommand;
+        private readonly MyCharactersCommand _myCharactersCommand;
+        private readonly MyEpisodesCommand _myEpisodesCommand;
         private readonly ExtractToken _extractToken;
         private readonly Dictionary<long, string> _userTokens = new();
 
         public BotUpdateHandler(ITelegramBotClient botClient, RegisterCommand registerCommand, LoginCommand loginCommand, CaptureCharacterCommand captureCharacterCommand,
                                 CaptureEpisodeCommand captureEpisodeCommand, PutCharacterForSaleCommand sellCharacterCommand, PutEpisodeForSaleCommand sellEpisodeCommand,
-                                BuyCharacterCommand buyCharacterCommand, BuyEpisodeCommand buyEpisodeCommand, ViewMarketCommand viewMarketCommand,
+                                BuyCharacterCommand buyCharacterCommand, BuyEpisodeCommand buyEpisodeCommand, ViewMarketCommand viewMarketCommand, MyCharactersCommand myCharactersCommand, 
+                                MyEpisodesCommand myEpisodesCommand,
                                 ExtractToken extractToken, Dictionary<long, string> userTokens)
         {
             _botClient = botClient;
@@ -58,6 +61,8 @@ namespace Bot.handler
             _buyCharacterCommand = buyCharacterCommand;
             _buyEpisodeCommand = buyEpisodeCommand;
             _viewMarketCommand = viewMarketCommand;
+            _myCharactersCommand = myCharactersCommand;
+            _myEpisodesCommand = myEpisodesCommand;
             _extractToken = extractToken;
             _userTokens = userTokens;
         }
@@ -488,6 +493,64 @@ namespace Bot.handler
                     await botClient.SendMessage(
                         chatId: chatId,
                         text: $"🚨 Error fetching market data: {ex.Message}",
+                        cancellationToken: cancellationToken
+                    );
+                }
+            }
+            if (messageText == "/myCharacters")
+            {
+                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
+                if (string.IsNullOrEmpty(userToken)) return;
+
+                await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "Fetching your characters... 🧠",
+                    cancellationToken: cancellationToken
+                );
+
+                try
+                {
+                    var myCharacters = await _myCharactersCommand.ExecuteAsync(userToken);
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: myCharacters.Message,
+                        cancellationToken: cancellationToken
+                    );
+                }
+                catch (Exception ex)
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: $"🚨 Error fetching your characters: {ex.Message}",
+                        cancellationToken: cancellationToken
+                    );
+                }
+            }
+            if (messageText == "/myEpisodes")
+            {
+                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
+                if (string.IsNullOrEmpty(userToken)) return;
+
+                await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "Fetching your episodes... 🧠",
+                    cancellationToken: cancellationToken
+                );
+
+                try
+                {
+                    var myEpisodes = await _myEpisodesCommand.ExecuteAsync(userToken);
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: myEpisodes.Message,
+                        cancellationToken: cancellationToken
+                    );
+                }
+                catch (Exception ex)
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: $"🚨 Error fetching your episodes: {ex.Message}",
                         cancellationToken: cancellationToken
                     );
                 }

@@ -1,5 +1,6 @@
 using Bot.model.request;
 using System.Net.Http.Json;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Bot.service
 {
@@ -83,6 +84,24 @@ namespace Bot.service
         public async Task<string> ViewMarket(string token)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, $"{_apiUrl.TrimEnd('/')}/characters/for-sale");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var response = await _httpClient.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+            return content;
+        }
+
+        public async Task<string> GetMyCharacters(string token)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_apiUrl.TrimEnd('/')}/characters/my-characters");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var response = await _httpClient.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+            return content;
+        }
+
+        public async Task<string> GetMyEpisodes(string token)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_apiUrl.TrimEnd('/')}/episodes/my-episodes");
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             var response = await _httpClient.SendAsync(request);
             var content = await response.Content.ReadAsStringAsync();
