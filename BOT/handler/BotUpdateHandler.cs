@@ -44,7 +44,7 @@ namespace Bot.handler
 
         public BotUpdateHandler(ITelegramBotClient botClient, RegisterCommand registerCommand, LoginCommand loginCommand, CaptureCharacterCommand captureCharacterCommand,
                                 CaptureEpisodeCommand captureEpisodeCommand, PutCharacterForSaleCommand sellCharacterCommand, PutEpisodeForSaleCommand sellEpisodeCommand,
-                                BuyCharacterCommand buyCharacterCommand, BuyEpisodeCommand buyEpisodeCommand, ViewMarketCommand viewMarketCommand, MyCharactersCommand myCharactersCommand, 
+                                BuyCharacterCommand buyCharacterCommand, BuyEpisodeCommand buyEpisodeCommand, ViewMarketCommand viewMarketCommand, MyCharactersCommand myCharactersCommand,
                                 MyEpisodesCommand myEpisodesCommand, UserCharactersCommand userCharactersCommand, UserEpisodesCommand userEpisodesCommand, UserService userService,
                                 ExtractToken extractToken, Dictionary<long, string> userTokens)
         {
@@ -101,31 +101,60 @@ namespace Bot.handler
         public async Task SendCommandAsync(long chatId, ITelegramBotClient botClient, CancellationToken cancellationToken, Func<string, Task<string>> action, string processingMessage = "Processing...")
         {
             var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
-                if (string.IsNullOrEmpty(userToken)) return;
+            if (string.IsNullOrEmpty(userToken)) return;
 
+            await botClient.SendMessage(
+                chatId: chatId,
+                text: processingMessage,
+                cancellationToken: cancellationToken
+            );
+
+            try
+            {
+                var data = await action(userToken);
                 await botClient.SendMessage(
                     chatId: chatId,
-                    text: processingMessage,
+                    text: data,
                     cancellationToken: cancellationToken
                 );
+            }
+            catch (Exception ex)
+            {
+                await botClient.SendMessage(
+                    chatId: chatId,
+                    text: $"🚨 Error fetching data: {ex.Message}",
+                    cancellationToken: cancellationToken
+                );
+            }
+        }
+        public async Task SendCommandWithParmsAsync<T>(long chatId, ITelegramBotClient botClient, CancellationToken cancellationToken, Func<string, T, Task<string>> action, T parameter, string processingMessage = "Processing...")
+        {
+            var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
+            if (string.IsNullOrEmpty(userToken)) return;
 
-                try
-                {
-                    var data = await action(userToken);
-                    await botClient.SendMessage(
-                        chatId: chatId,
-                        text: data,
-                        cancellationToken: cancellationToken
-                    );
-                }
-                catch (Exception ex)
-                {
-                    await botClient.SendMessage(
-                        chatId: chatId,
-                        text: $"🚨 Error fetching data: {ex.Message}",
-                        cancellationToken: cancellationToken
-                    );
-                }
+            await botClient.SendMessage(
+                chatId: chatId,
+                text: processingMessage,
+                cancellationToken: cancellationToken
+            );
+
+            try
+            {
+                var data = await action(userToken, parameter);
+                await botClient.SendMessage(
+                    chatId: chatId,
+                    text: data,
+                    cancellationToken: cancellationToken
+                );
+            }
+            catch (Exception ex)
+            {
+                await botClient.SendMessage(
+                    chatId: chatId,
+                    text: $"🚨 Error fetching data: {ex.Message}",
+                    cancellationToken: cancellationToken
+                );
+            }
         }
 
         public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -265,7 +294,7 @@ namespace Bot.handler
             }
             if (messageText == "/captureCharacter")
             {
-                await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) => 
+                await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) =>
                 {
                     var captureCharacter = await _captureCharacterCommand.ExecuteAsync(userToken);
                     return captureCharacter.Message;
@@ -273,7 +302,7 @@ namespace Bot.handler
             }
             if (messageText == "/captureEpisode")
             {
-                await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) => 
+                await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) =>
                 {
                     var captureEpisode = await _captureEpisodeCommand.ExecuteAsync(userToken);
                     return captureEpisode.Message;
@@ -281,8 +310,6 @@ namespace Bot.handler
             }
             if (messageText.StartsWith("/sellCharacter"))
             {
-                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
-                if (string.IsNullOrEmpty(userToken)) return;
 
                 var parts = messageText.Split(' ');
                 if (parts.Length != 3)
@@ -292,40 +319,25 @@ namespace Bot.handler
                     text: "🚨 ERROR: Usage: /sellCharacter <itemID> <price> Example: /sellCharacter 1 100",
                     cancellationToken: cancellationToken
                 );
+                    return;
                 }
 
-                await botClient.SendMessage(
-                    chatId: chatId,
-                    text: "Putting the character for sale... 🤑...",
-                    cancellationToken: cancellationToken
-                );
-                try
+                var itemForSaleRequest = new ItemForSaleRequest
                 {
-                    var itemForSaleRequest = new ItemForSaleRequest
-                    {
-                        Price = int.Parse(parts[2]),
-                        ItemID = int.Parse(parts[1])
-                    };
-                    var sellCharacter = await _sellCharacterCommand.ExecuteAsync(itemForSaleRequest, userToken);
-                    await botClient.SendMessage(
-                        chatId: chatId,
-                        text: sellCharacter.Message,
-                        cancellationToken: cancellationToken
-                    );
-                }
-                catch (Exception ex)
+                    Price = int.Parse(parts[2]),
+                    ItemID = int.Parse(parts[1])
+                };
+
+                await SendCommandWithParmsAsync(chatId, botClient, cancellationToken, async (userToken, request) =>
                 {
-                    await botClient.SendMessage(
-                        chatId: chatId,
-                        text: $"🚨 Error putting the character for sale: {ex.Message}",
-                        cancellationToken: cancellationToken
-                    );
-                }
+                    var sellCharacter = await _sellCharacterCommand.ExecuteAsync(request, userToken);
+                    return sellCharacter.Message;
+                }, itemForSaleRequest, "Putting the character for sale... 🤑...");
+
+
             }
             if (messageText.StartsWith("/sellEpisode"))
             {
-                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
-                if (string.IsNullOrEmpty(userToken)) return;
 
                 var parts = messageText.Split(' ');
                 if (parts.Length != 3)
@@ -337,38 +349,20 @@ namespace Bot.handler
                 );
                 }
 
-                await botClient.SendMessage(
-                    chatId: chatId,
-                    text: "Putting the episode for sale... 🤑",
-                    cancellationToken: cancellationToken
-                );
-                try
+                var itemForSaleRequest = new ItemForSaleRequest
                 {
-                    var itemForSaleRequest = new ItemForSaleRequest
-                    {
-                        Price = int.Parse(parts[2]),
-                        ItemID = int.Parse(parts[1])
-                    };
-                    var sellEpisode = await _sellEpisodeCommand.ExecuteAsync(itemForSaleRequest, userToken);
-                    await botClient.SendMessage(
-                        chatId: chatId,
-                        text: sellEpisode.Message,
-                        cancellationToken: cancellationToken
-                    );
-                }
-                catch (Exception ex)
+                    Price = int.Parse(parts[2]),
+                    ItemID = int.Parse(parts[1])
+                };
+
+                await SendCommandWithParmsAsync(chatId, botClient, cancellationToken, async (userToken, request) =>
                 {
-                    await botClient.SendMessage(
-                        chatId: chatId,
-                        text: $"🚨 Error putting the episode for sale: {ex.Message}",
-                        cancellationToken: cancellationToken
-                    );
-                }
+                    var sellEpisode = await _sellEpisodeCommand.ExecuteAsync(request, userToken);
+                    return sellEpisode.Message;
+                }, itemForSaleRequest, "Putting the episode for sale... 🤑...");
             }
             if (messageText.StartsWith("/buyCharacter"))
             {
-                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
-                if (string.IsNullOrEmpty(userToken)) return;
 
                 var parts = messageText.Split(' ');
                 if (parts.Length != 2)
@@ -391,35 +385,14 @@ namespace Bot.handler
                     return;
                 }
 
-                await botClient.SendMessage(
-                    chatId: chatId,
-                    text: "Buying the character... 🛒",
-                    cancellationToken: cancellationToken
-                );
-
-                try
+                await SendCommandWithParmsAsync(chatId, botClient, cancellationToken, async (userToken, id) =>
                 {
-                    // Pasamos directamente el int
-                    var buyCharacter = await _buyCharacterCommand.ExecuteAsync(itemId, userToken);
-                    await botClient.SendMessage(
-                        chatId: chatId,
-                        text: buyCharacter.Message,
-                        cancellationToken: cancellationToken
-                    );
-                }
-                catch (Exception ex)
-                {
-                    await botClient.SendMessage(
-                        chatId: chatId,
-                        text: $"🚨 Error buying the character: {ex.Message}",
-                        cancellationToken: cancellationToken
-                    );
-                }
+                    var buyCharacter = await _buyCharacterCommand.ExecuteAsync(id, userToken);
+                    return buyCharacter.Message;
+                }, itemId, "Buying the character... 🛒...");
             }
             if (messageText.StartsWith("/buyEpisode"))
             {
-                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
-                if (string.IsNullOrEmpty(userToken)) return;
 
                 var parts = messageText.Split(' ');
                 if (parts.Length != 2)
@@ -442,34 +415,15 @@ namespace Bot.handler
                     return;
                 }
 
-                await botClient.SendMessage(
-                    chatId: chatId,
-                    text: "Buying the episode... 🛒",
-                    cancellationToken: cancellationToken
-                );
-
-                try
+                await SendCommandWithParmsAsync(chatId, botClient, cancellationToken, async (userToken, id) =>
                 {
-                    // Pasamos directamente el int
-                    var buyEpisode = await _buyEpisodeCommand.ExecuteAsync(itemId, userToken);
-                    await botClient.SendMessage(
-                        chatId: chatId,
-                        text: buyEpisode.Message,
-                        cancellationToken: cancellationToken
-                    );
-                }
-                catch (Exception ex)
-                {
-                    await botClient.SendMessage(
-                        chatId: chatId,
-                        text: $"🚨 Error buying the episode: {ex.Message}",
-                        cancellationToken: cancellationToken
-                    );
-                }
+                    var buyEpisode = await _buyEpisodeCommand.ExecuteAsync(id, userToken);
+                    return buyEpisode.Message;
+                }, itemId, "Buying the episode... 🛒...");
             }
             if (messageText == "/viewMarket")
             {
-                await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) => 
+                await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) =>
                 {
                     var marketItems = await _viewMarketCommand.ExecuteAsync(userToken);
                     return marketItems.Message;
@@ -477,7 +431,7 @@ namespace Bot.handler
             }
             if (messageText == "/myCharacters")
             {
-                await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) => 
+                await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) =>
                 {
                     var myCharacters = await _myCharactersCommand.ExecuteAsync(userToken);
                     return myCharacters.Message;
@@ -485,7 +439,7 @@ namespace Bot.handler
             }
             if (messageText == "/myEpisodes")
             {
-                await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) => 
+                await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) =>
                 {
                     var myEpisodes = await _myEpisodesCommand.ExecuteAsync(userToken);
                     return myEpisodes.Message;
@@ -493,18 +447,8 @@ namespace Bot.handler
             }
             if (messageText.StartsWith("/charactersUser"))
             {
-                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
-                if (string.IsNullOrEmpty(userToken)) return;
 
-                await botClient.SendMessage(
-                    chatId: chatId,
-                    text: "Fetching user's characters... 🧠",
-                    cancellationToken: cancellationToken
-                );
-
-                try
-                {
-                    var parts = messageText.Split(' ');
+                var parts = messageText.Split(' ');
                     if (parts.Length != 2)
                     {
                         await botClient.SendMessage(
@@ -512,38 +456,18 @@ namespace Bot.handler
                         text: "🚨 ERROR: Usage: /charactersUser <username> Example: /charactersUser user123",
                         cancellationToken: cancellationToken
                     );
-                    return;
+                        return;
                     }
-                    var charactersUser = await _userCharactersCommand.ExecuteAsync(userToken, parts[1]);
-                    await botClient.SendMessage(
-                        chatId: chatId,
-                        text: charactersUser.Message,
-                        cancellationToken: cancellationToken
-                    );
-                }
-                catch (Exception ex)
+
+               await SendCommandWithParmsAsync(chatId, botClient, cancellationToken, async (userToken, username) =>
                 {
-                    await botClient.SendMessage(
-                        chatId: chatId,
-                        text: $"🚨 Error fetching user's characters: {ex.Message}",
-                        cancellationToken: cancellationToken
-                    );
-                }
+                    var charactersUser = await _userCharactersCommand.ExecuteAsync(userToken, username);
+                    return charactersUser.Message;
+                }, parts[1], "Fetching user's characters... 🧠...");
             }
             if (messageText.StartsWith("/episodesUser"))
             {
-                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
-                if (string.IsNullOrEmpty(userToken)) return;
-
-                await botClient.SendMessage(
-                    chatId: chatId,
-                    text: "Fetching user's episodes... 🧠",
-                    cancellationToken: cancellationToken
-                );
-
-                try
-                {
-                    var parts = messageText.Split(' ');
+                var parts = messageText.Split(' ');
                     if (parts.Length != 2)
                     {
                         await botClient.SendMessage(
@@ -551,27 +475,18 @@ namespace Bot.handler
                         text: "🚨 ERROR: Usage: /episodesUser <username> Example: /episodesUser user123",
                         cancellationToken: cancellationToken
                     );
-                    return;
+                        return;
                     }
-                    var episodesUser = await _userEpisodesCommand.ExecuteAsync(userToken, parts[1]);
-                    await botClient.SendMessage(
-                        chatId: chatId,
-                        text: episodesUser.Message,
-                        cancellationToken: cancellationToken
-                    );
-                }
-                catch (Exception ex)
+
+                await SendCommandWithParmsAsync(chatId, botClient, cancellationToken, async (userToken, username) =>
                 {
-                    await botClient.SendMessage(
-                        chatId: chatId,
-                        text: $"🚨 Error fetching user's episodes: {ex.Message}",
-                        cancellationToken: cancellationToken
-                    );
-                }
+                    var episodesUser = await _userEpisodesCommand.ExecuteAsync(userToken, username);
+                    return episodesUser.Message;
+                }, parts[1], "Fetching user's episodes... 🧠...");
             }
             if (messageText == "/myInfo")
             {
-                await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) => 
+                await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) =>
                 {
                     var userInfo = await _userService.GetMyUserInfo(userToken);
                     return userInfo;
@@ -579,7 +494,7 @@ namespace Bot.handler
             }
             if (messageText == "/work")
             {
-                await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) => 
+                await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) =>
                 {
                     var workResult = await _userService.Work(userToken);
                     return workResult;
@@ -587,8 +502,6 @@ namespace Bot.handler
             }
             if (messageText.StartsWith("/userInfo"))
             {
-                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
-                if (string.IsNullOrEmpty(userToken)) return;
 
                 var parts = messageText.Split(' ');
                 if (parts.Length != 2)
@@ -598,32 +511,14 @@ namespace Bot.handler
                     text: "🚨 ERROR: Usage: userInfo <username> Example: userInfo user123",
                     cancellationToken: cancellationToken
                 );
-                return;
+                    return;
                 }
 
-                await botClient.SendMessage(
-                    chatId: chatId,
-                    text: $"Fetching {parts[1]} user info... 🧠",
-                    cancellationToken: cancellationToken
-                );
-
-                try
+                await SendCommandWithParmsAsync(chatId, botClient, cancellationToken, async (userToken, username) =>
                 {
-                    var userInfo = await _userService.GetUserInfo(userToken, parts[1]);
-                    await botClient.SendMessage(
-                        chatId: chatId,
-                        text: userInfo,
-                        cancellationToken: cancellationToken
-                    );
-                }
-                catch (Exception ex)
-                {
-                    await botClient.SendMessage(
-                        chatId: chatId,
-                        text: $"🚨 Error fetching user info: {ex.Message}",
-                        cancellationToken: cancellationToken
-                    );
-                }
+                    var userInfo = await _userService.GetUserInfo(userToken, username);
+                    return userInfo;
+                }, parts[1], "Fetching user info... 🧠...");
             }
         }
     }
