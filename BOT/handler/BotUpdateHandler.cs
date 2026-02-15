@@ -152,12 +152,22 @@ namespace Bot.handler
                     );
                     return;
                 }
+                string cleanedMessage = ex.Message;
+
+                // Quitar "API error"
+                cleanedMessage = cleanedMessage.Replace("API error", "").Trim();
+                // Quitar llaves {}
+                cleanedMessage = cleanedMessage.Replace("{", "").Replace("}", "").Trim();
+                // Quitar comillas "
+                cleanedMessage = cleanedMessage.Replace("\"", "").Trim();
+                // Quitar "message:"
+                cleanedMessage = cleanedMessage.Replace("message:", "").Trim();
+
                 await botClient.SendMessage(
-                        chatId: chatId,
-                        text: $"🚨 Error fetching data: {ex.Message}",
-                        cancellationToken: cancellationToken
-                    );
-                return;
+                    chatId: chatId,
+                    text: $"🚨 {cleanedMessage}",
+                    cancellationToken: cancellationToken
+                );
             }
         }
         public async Task SendCommandWithParmsAsync<T>(long chatId, ITelegramBotClient botClient, CancellationToken cancellationToken, Func<string, T, Task<string>> action, T parameter, string processingMessage = "Processing...")
@@ -182,9 +192,20 @@ namespace Bot.handler
             }
             catch (Exception ex)
             {
+                string cleanedMessage = ex.Message;
+
+                // Quitar "API error"
+                cleanedMessage = cleanedMessage.Replace("API error", "").Trim();
+                // Quitar llaves {}
+                cleanedMessage = cleanedMessage.Replace("{", "").Replace("}", "").Trim();
+                // Quitar comillas "
+                cleanedMessage = cleanedMessage.Replace("\"", "").Trim();
+                // Quitar "message:"
+                cleanedMessage = cleanedMessage.Replace("message:", "").Trim();
+
                 await botClient.SendMessage(
                     chatId: chatId,
-                    text: $"🚨 Error fetching data: {ex.Message}",
+                    text: $"🚨 {cleanedMessage}",
                     cancellationToken: cancellationToken
                 );
             }
@@ -365,7 +386,7 @@ namespace Bot.handler
                     if (captureEpisode != null && captureEpisode.Id != 0)
                     {
                         return Bot.model.response.Formatter.FormaCaptureEpisode(captureEpisode);
-                    } 
+                    }
 
                     return "❌ Error capturing the episode, work and try again!";
                 }, "Capturing episode...");
@@ -449,8 +470,18 @@ namespace Bot.handler
 
                 await SendCommandWithParmsAsync(chatId, botClient, cancellationToken, async (userToken, id) =>
                 {
-                    var buyCharacter = await _buyCharacterCommand.ExecuteAsync(id, userToken);
-                    return buyCharacter.Message;
+                    var jsonResponse = await _buyCharacterCommand.ExecuteAsync(id, userToken);
+                    var captureCharacter = JsonSerializer.Deserialize<Bot.model.response.CaptureCharacter>(
+                        jsonResponse.Message,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+                    if (captureCharacter != null && captureCharacter.Id != 0)
+                    {
+                        return Bot.model.response.Formatter.FormaCaptureCharacter(captureCharacter);
+                    }
+
+                    return "❌ Error capturing the character, work and try again!";
+
                 }, itemId, "Buying the character... 🛒...");
             }
             if (messageText.StartsWith("/buyEpisode"))
@@ -479,8 +510,17 @@ namespace Bot.handler
 
                 await SendCommandWithParmsAsync(chatId, botClient, cancellationToken, async (userToken, id) =>
                 {
-                    var buyEpisode = await _buyEpisodeCommand.ExecuteAsync(id, userToken);
-                    return buyEpisode.Message;
+                    var jsonResponse = await _buyEpisodeCommand.ExecuteAsync(id, userToken);
+                    var captureEpisode = JsonSerializer.Deserialize<Bot.model.response.CaptureEpisode>(
+                        jsonResponse.Message,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+                    if (captureEpisode != null && captureEpisode.Id != 0)
+                    {
+                        return Bot.model.response.Formatter.FormaCaptureEpisode(captureEpisode);
+                    }
+
+                    return "❌ Error capturing the episode, work and try again!";
                 }, itemId, "Buying the episode... 🛒...");
             }
             if (messageText.StartsWith("/cancelCharacterSell"))
@@ -624,7 +664,17 @@ namespace Bot.handler
                 await SendCommandAsync(chatId, botClient, cancellationToken, async (userToken) =>
                 {
                     var workResult = await _userService.Work(userToken);
-                    return workResult;
+                    string cleanedMessage = "🤑 " + workResult;
+
+                    // Quitar "earnedMoney"
+                    cleanedMessage = cleanedMessage.Replace("earnedMoney", "").Trim();
+                    // Quitar llaves {}
+                    cleanedMessage = cleanedMessage.Replace("{:", "").Replace("}", "").Trim();
+                    // Quitar comillas "
+                    cleanedMessage = cleanedMessage.Replace("\"", "").Trim();
+                    // Quitar "message:"
+                    cleanedMessage = cleanedMessage.Replace("message:", "").Trim();
+                    return cleanedMessage;
                 }, "Working... 💼");
             }
             if (messageText.StartsWith("/userInfo"))
