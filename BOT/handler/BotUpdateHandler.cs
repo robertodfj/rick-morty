@@ -16,10 +16,6 @@ using Bot.token;
 // Pruebas completas de la api consumida desde telegram no postman
 /*
 COMANDOS A IMPLEMENTAR
-my-characters
-my-episodes
-characters/usuarioEnemigo
-episodes/usuarioEnemigo
 user/work
 user/edit
 
@@ -42,13 +38,15 @@ namespace Bot.handler
         private readonly ViewMarketCommand _viewMarketCommand;
         private readonly MyCharactersCommand _myCharactersCommand;
         private readonly MyEpisodesCommand _myEpisodesCommand;
+        private readonly UserCharactersCommand _userCharactersCommand;
+        private readonly UserEpisodesCommand _userEpisodesCommand;
         private readonly ExtractToken _extractToken;
         private readonly Dictionary<long, string> _userTokens = new();
 
         public BotUpdateHandler(ITelegramBotClient botClient, RegisterCommand registerCommand, LoginCommand loginCommand, CaptureCharacterCommand captureCharacterCommand,
                                 CaptureEpisodeCommand captureEpisodeCommand, PutCharacterForSaleCommand sellCharacterCommand, PutEpisodeForSaleCommand sellEpisodeCommand,
                                 BuyCharacterCommand buyCharacterCommand, BuyEpisodeCommand buyEpisodeCommand, ViewMarketCommand viewMarketCommand, MyCharactersCommand myCharactersCommand, 
-                                MyEpisodesCommand myEpisodesCommand,
+                                MyEpisodesCommand myEpisodesCommand, UserCharactersCommand userCharactersCommand, UserEpisodesCommand userEpisodesCommand,
                                 ExtractToken extractToken, Dictionary<long, string> userTokens)
         {
             _botClient = botClient;
@@ -63,6 +61,8 @@ namespace Bot.handler
             _viewMarketCommand = viewMarketCommand;
             _myCharactersCommand = myCharactersCommand;
             _myEpisodesCommand = myEpisodesCommand;
+            _userCharactersCommand = userCharactersCommand;
+            _userEpisodesCommand = userEpisodesCommand;
             _extractToken = extractToken;
             _userTokens = userTokens;
         }
@@ -551,6 +551,84 @@ namespace Bot.handler
                     await botClient.SendMessage(
                         chatId: chatId,
                         text: $"🚨 Error fetching your episodes: {ex.Message}",
+                        cancellationToken: cancellationToken
+                    );
+                }
+            }
+            if (messageText.StartsWith("/charactersUser"))
+            {
+                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
+                if (string.IsNullOrEmpty(userToken)) return;
+
+                await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "Fetching user's characters... 🧠",
+                    cancellationToken: cancellationToken
+                );
+
+                try
+                {
+                    var parts = messageText.Split(' ');
+                    if (parts.Length != 2)
+                    {
+                        await botClient.SendMessage(
+                        chatId: chatId,
+                        text: "🚨 ERROR: Usage: /charactersUser <username> Example: /charactersUser user123",
+                        cancellationToken: cancellationToken
+                    );
+                    return;
+                    }
+                    var charactersUser = await _userCharactersCommand.ExecuteAsync(userToken, parts[1]);
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: charactersUser.Message,
+                        cancellationToken: cancellationToken
+                    );
+                }
+                catch (Exception ex)
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: $"🚨 Error fetching user's characters: {ex.Message}",
+                        cancellationToken: cancellationToken
+                    );
+                }
+            }
+            if (messageText.StartsWith("/episodesUser"))
+            {
+                var userToken = await VerifyUserToken(chatId, botClient, cancellationToken);
+                if (string.IsNullOrEmpty(userToken)) return;
+
+                await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "Fetching user's episodes... 🧠",
+                    cancellationToken: cancellationToken
+                );
+
+                try
+                {
+                    var parts = messageText.Split(' ');
+                    if (parts.Length != 2)
+                    {
+                        await botClient.SendMessage(
+                        chatId: chatId,
+                        text: "🚨 ERROR: Usage: /episodesUser <username> Example: /episodesUser user123",
+                        cancellationToken: cancellationToken
+                    );
+                    return;
+                    }
+                    var episodesUser = await _userEpisodesCommand.ExecuteAsync(userToken, parts[1]);
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: episodesUser.Message,
+                        cancellationToken: cancellationToken
+                    );
+                }
+                catch (Exception ex)
+                {
+                    await botClient.SendMessage(
+                        chatId: chatId,
+                        text: $"🚨 Error fetching user's episodes: {ex.Message}",
                         cancellationToken: cancellationToken
                     );
                 }

@@ -107,5 +107,23 @@ namespace Bot.service
             var content = await response.Content.ReadAsStringAsync();
             return content;
         }
+
+        public async Task<string> GetUserCharacters(string token, string username)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_apiUrl.TrimEnd('/')}/characters/{username}");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var response = await _httpClient.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+            return content;
+        }
+
+        public async Task<string> GetUserEpisodes(string token, string username)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_apiUrl.TrimEnd('/')}/episodes/{username}");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var response = await _httpClient.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+            return content;
+        }
     }
 }
